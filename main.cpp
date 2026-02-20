@@ -12,8 +12,6 @@ int main(int argc, char *argv[]) {
     const int centerX = 80;
     const int centerY = 180;
 
-    const QColor BACKGROUND_COLOR = Qt::darkBlue;
-
     QImage image(width, height, QImage::Format_ARGB32);
 
     for (int x = 0; x < width; x++) {
@@ -21,7 +19,7 @@ int main(int argc, char *argv[]) {
             if ((x-centerX)*(x-centerX) + (y-centerY)*(y-centerY) < radius*radius) {
                 image.setPixelColor(x, y, Qt::red);
             } else {
-                image.setPixelColor(x, y, BACKGROUND_COLOR);
+                image.setPixelColor(x, y, Qt::black);
             }
         }
     }

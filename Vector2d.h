@@ -7,6 +7,18 @@
 
 
 class Vector2d {
+
+public:
+    double x;
+    double y;
+
+    Vector2d();
+    Vector2d(double x, double y);
+    Vector2d add(Vector2d);
+    Vector2d sub(Vector2d);
+    Vector2d mul(double);
+    double length();
+
 };
 
 

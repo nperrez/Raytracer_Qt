@@ -16,6 +16,7 @@ find_package(Qt6 COMPONENTS
 add_executable(Raytracer_Qt main.cpp
         main.cpp
         Vector2d.h
+        Vector2d.cpp
 )
 target_link_libraries(Raytracer_Qt
         Qt::Core

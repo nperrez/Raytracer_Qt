@@ -1,13 +1,14 @@
 #include <QApplication>
 #include <QLabel>
 #include <QImage>
-
 #include "Vector2d.h"
 
+//Image properties
 constexpr int width = 600;
 constexpr int height = 600;
 constexpr auto BACKGROUND_COLOR = QColor(255, 255, 255);
 
+//Class for Circles using Vectors
 class CircleVect {
 public:
     Vector2d center;
@@ -19,6 +20,7 @@ public:
     }
 };
 
+//Class for Circles without Vectors
 class Circle {
 public:
     int radius = 50;
@@ -32,11 +34,13 @@ public:
     }
 };
 
+//Create vectors and Iterators for use with multiple Circles in one image
 std::pmr::vector<Circle> circles;
 std::pmr::vector<CircleVect> circleVects;
 std::pmr::vector<Circle>::iterator itc;
 std::pmr::vector<CircleVect>::iterator itcv;
 
+//Draw Circles without using Vectors
 void drawCircles(QImage& image) {
 
     circles.push_back(Circle(50, 300, 250));
@@ -64,6 +68,7 @@ void drawCircles(QImage& image) {
     }
 }
 
+//Draw Circles using Vectors
 void drawCirclesVect(QImage& image) {
 
     circleVects.push_back(CircleVect(Vector2d(500, 120), 140));
@@ -93,19 +98,17 @@ void drawCirclesVect(QImage& image) {
 }
 
 int main(int argc, char *argv[]) {
+
+    //WindowAp Management
     QApplication a(argc, argv);
     QImage image(width, height, QImage::Format_ARGB32);
 
-
-    circleVects.push_back(CircleVect(Vector2d(500, 120), 140));
-    circleVects.push_back(CircleVect(Vector2d(250, 360), 200));
-
+    //Insert draw function here
     drawCirclesVect(image);
 
-
+    //Window Management
     QLabel label;
     label.setPixmap(QPixmap::fromImage(image));
     label.show();
-
     return QApplication::exec();
 }

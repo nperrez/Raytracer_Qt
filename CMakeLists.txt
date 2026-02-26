@@ -19,6 +19,16 @@ add_executable(Raytracer_Qt main.cpp
         Vector2d.cpp
         Color.cpp
         Color.h
+        circle.cpp
+        circle.h
+        circleVect.cpp
+        circleVect.h
+        Vector3d.cpp
+        Vector3d.h
+        Sphere.cpp
+        Sphere.h
+        Ray.cpp
+        Ray.h
 )
 target_link_libraries(Raytracer_Qt
         Qt::Core

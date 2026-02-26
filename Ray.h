@@ -16,12 +16,14 @@ private:
     bool done =false;
 
 public:
-    Ray(int x, int y);
+    Ray(int width, int height);
     Vector3d getLocation();
     Vector3d getDirection();
     bool isDone();
+    void resetY();
 
-    void increment();
+    void incrementX();
+    void incrementY();
 };
 
 

@@ -2,12 +2,13 @@
 #include <QApplication>
 #include <QLabel>
 #include <QImage>
+#include <queue>
 
 #include "Sphere.h"
-#include "circleVect.h"
+#include "2d/circleVect.h"
 #include "Color.h"
 #include "Ray.h"
-#include "Vector2d.h"
+#include "2d/Vector2d.h"
 #include "Vector3d.h"
 
 //Image properties
@@ -53,17 +54,39 @@ void drawCirclesVect(QImage& image) {
 
 void drawSpheres(QImage& image) {
 
+    std::pmr::vector<Sphere> spheres;
+
+    Ray ray(width, height);
+    Sphere sphere1(Vector3d(500, 500, 200), 150, Color(Qt::red));
+    Sphere sphere2(Vector3d(600, 600, 180), 150, Color(Qt::blue));
+    Sphere sphere3(Vector3d(400, 600, 220), 150, Color(Qt::green));
+
+    spheres.emplace_back(sphere1);
+    spheres.emplace_back(sphere2);
+    spheres.emplace_back(sphere3);
+
     for (int x = 0; x < width; x++) {
+        ray.resetY();
         for (int y = 0; y < height; y++) {
-            Sphere sphere(Vector3d(500, 500, 200), 150, Ray(x, y));
-            double t = sphere.getLambda();
-            if (t >= 0) {
-                image.setPixelColor(x, y, sphere.getLambda());
+            double lambda = std::numeric_limits<double>::infinity();
+            Color color(BACKGROUND_COLOR);
+            for (auto& sphere : spheres) {
+                double lambda1 = sphere.intersect(ray);
+                if (lambda1 >= 0 && lambda1 < lambda) {
+                    lambda = lambda1;
+                    color = sphere.get_color();
+                }
+            }
+            if (lambda < std::numeric_limits<double>::infinity()) {
+                image.setPixelColor(x, y, color.getColor());
             } else {
                 image.setPixelColor(x, y, BACKGROUND_COLOR);
             }
+            ray.incrementY();
         }
+        ray.incrementX();
     }
+
 }
 
 int main(int argc, char *argv[]) {

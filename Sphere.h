@@ -4,6 +4,7 @@
 
 #ifndef RAYTRACER_QT_BALL_H
 #define RAYTRACER_QT_BALL_H
+#include "Color.h"
 #include "Ray.h"
 #include "Vector3d.h"
 
@@ -13,17 +14,16 @@ class Sphere {
 private:
     Vector3d center;
     double radius;
-    Ray ray;
-    double a;
+    Color color;
 
 public:
-    Sphere(Vector3d center, double radius, Ray ray);
+    Sphere(Vector3d center, double radius, Color color);
 
     Vector3d get_center();
     double get_radius();
+    Color get_color();
 
-    double getLambda();
-    Ray get_ray();
+    double intersect(Ray ray);
 };
 
 

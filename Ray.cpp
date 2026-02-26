@@ -4,8 +4,8 @@
 
 #include "Ray.h"
 
-Ray::Ray(int x, int y) {
-    this->location = Vector3d(x, y, 0);
+Ray::Ray(int width, int height) : width(width), height(height) {
+    this->location = Vector3d(0, 0, 0);
     this->direction = Vector3d(0,0,1);
 }
 
@@ -21,12 +21,14 @@ bool Ray::isDone() {
     return done;
 }
 
-void Ray::increment() {
-    if (location.getX() < width) {
-        location = location+Vector3d(1,0,0);
-    } else if (location.getY() < height) {
-        location = location+Vector3d(0,1,0);
-    } else {
-        done = true;
-    }
+void Ray::resetY() {
+    location = Vector3d(this->location.getX(), 0, 0);
+}
+
+void Ray::incrementX() {
+    location = location + Vector3d(1,0,0);
+}
+
+void Ray::incrementY() {
+    location = location + Vector3d(0,1,0);
 }

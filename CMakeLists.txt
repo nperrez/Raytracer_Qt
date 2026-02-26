@@ -15,14 +15,14 @@ find_package(Qt6 COMPONENTS
 
 add_executable(Raytracer_Qt main.cpp
         main.cpp
-        Vector2d.h
-        Vector2d.cpp
+        2d/Vector2d.h
+        2d/Vector2d.cpp
         Color.cpp
         Color.h
-        circle.cpp
-        circle.h
-        circleVect.cpp
-        circleVect.h
+        2d/circle.cpp
+        2d/circle.h
+        2d/circleVect.cpp
+        2d/circleVect.h
         Vector3d.cpp
         Vector3d.h
         Sphere.cpp

@@ -7,9 +7,7 @@
 #include <cmath>
 #include <iostream>
 
-Sphere::Sphere(Vector3d center, double radius, Ray ray) : center(center), radius(radius), ray(ray) {
-    a = ray.getDirection()*ray.getDirection();
-}
+Sphere::Sphere(Vector3d center, double radius, Color color) : center(center), radius(radius), color(color) {}
 
 Vector3d Sphere::get_center() {
     return center;
@@ -19,7 +17,12 @@ double Sphere::get_radius() {
     return radius;
 }
 
-double Sphere::getLambda() {
+Color Sphere::get_color() {
+    return color;
+}
+
+double Sphere::intersect(Ray ray) {
+    double a = ray.getDirection()*ray.getDirection();
     Vector3d v = ray.getLocation() - center;
     double b = 2*(ray.getDirection()*v);
     double c = v*v - radius*radius;
@@ -36,7 +39,4 @@ double Sphere::getLambda() {
         return (-b+sqrt(d))/(2*a);
     }
 
-}
- Ray Sphere::get_ray() {
-    return ray;
 }

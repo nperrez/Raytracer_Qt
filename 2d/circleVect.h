@@ -4,7 +4,7 @@
 
 #ifndef RAYTRACER_QT_CIRCLEVECT_H
 #define RAYTRACER_QT_CIRCLEVECT_H
-#include "Color.h"
+#include "../Color.h"
 #include "Vector2d.h"
 
 

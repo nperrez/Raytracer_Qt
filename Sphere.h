@@ -17,13 +17,14 @@ private:
     Color color;
 
 public:
-    Sphere(Vector3d center, double radius, Color color);
+    Sphere(const Vector3d &center, double radius, const Color &color);
 
-    Vector3d get_center();
-    double get_radius();
-    Color get_color();
+    Vector3d getCenter() const;
+    double getRadius() const;
+    Color getColor() const;
+    double getDepth() const;
 
-    double intersect(Ray ray);
+    double intersect(Ray ray) const;
 };
 
 

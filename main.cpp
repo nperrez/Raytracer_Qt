@@ -57,13 +57,15 @@ void drawSpheres(QImage& image) {
     std::pmr::vector<Sphere> spheres;
 
     Ray ray(width, height);
-    Sphere sphere1(Vector3d(500, 500, 200), 150, Color(Qt::red));
-    Sphere sphere2(Vector3d(600, 600, 180), 150, Color(Qt::blue));
-    Sphere sphere3(Vector3d(400, 600, 220), 150, Color(Qt::green));
+    Sphere sphere1(Vector3d(500, 510, 230), 150, Color(1, 0, 0));
+    Sphere sphere2(Vector3d(590, 500, 200), 150, Color(0, 0, 1));
+    Sphere sphere3(Vector3d(550, 550, 180), 150, Color(0, 1, 0));
+    Sphere sphere4(Vector3d(520, 500, 100), 80, Color(1, 1, 0));
 
     spheres.emplace_back(sphere1);
     spheres.emplace_back(sphere2);
     spheres.emplace_back(sphere3);
+    spheres.emplace_back(sphere4);
 
     for (int x = 0; x < width; x++) {
         ray.resetY();
@@ -74,7 +76,7 @@ void drawSpheres(QImage& image) {
                 double lambda1 = sphere.intersect(ray);
                 if (lambda1 >= 0 && lambda1 < lambda) {
                     lambda = lambda1;
-                    color = sphere.get_color();
+                    color = sphere.getColor()*(1-lambda/sphere.getDepth());
                 }
             }
             if (lambda < std::numeric_limits<double>::infinity()) {

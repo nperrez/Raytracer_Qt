@@ -5,38 +5,39 @@
 #include "Sphere.h"
 
 #include <cmath>
-#include <iostream>
 
-Sphere::Sphere(Vector3d center, double radius, Color color) : center(center), radius(radius), color(color) {}
+Sphere::Sphere(const Vector3d &center, const double radius, const Color &color) : center(center), radius(radius), color(color) {}
 
-Vector3d Sphere::get_center() {
+Vector3d Sphere::getCenter() const {
     return center;
 }
 
-double Sphere::get_radius() {
+double Sphere::getRadius() const {
     return radius;
 }
 
-Color Sphere::get_color() {
+Color Sphere::getColor() const {
     return color;
 }
 
-double Sphere::intersect(Ray ray) {
-    double a = ray.getDirection()*ray.getDirection();
-    Vector3d v = ray.getLocation() - center;
-    double b = 2*(ray.getDirection()*v);
-    double c = v*v - radius*radius;
-    double d = b*b - 4*a*c;
+double Sphere::getDepth() const {
+    return center.getZ();
+}
+
+double Sphere::intersect(Ray ray) const {
+    const double a = ray.getDirection()*ray.getDirection();
+    const Vector3d v = ray.getLocation() - center;
+    const double b = 2*(ray.getDirection()*v);
+    const double c = v*v - radius*radius;
+    const double d = b*b - 4*a*c;
     if (d < 0) {
         return -1;
     }
+
     double lambda1 = (-b-sqrt(d))/(2*a);
-    //std::cout << "lambda1 = " << lambda1 << "\n";
 
     if (lambda1>=0) {
         return lambda1;
-    } else {
-        return (-b+sqrt(d))/(2*a);
     }
-
+    return (-b+sqrt(d))/(2*a);
 }

@@ -36,6 +36,10 @@ Color Color::operator*(Color color) const {
     return Color(r*color.r, g*color.g, b*color.b);
 }
 
+Color Color::operator*(double value) const {
+    return Color(r*value, g*value, b*value);
+}
+
 Color Color::operator+(Color color) const {
     if (r + color.r <= 1 && g + color.g <= 1 && b + color.b <= 1) {
         return Color(r + color.r, g + color.g, b + color.b);

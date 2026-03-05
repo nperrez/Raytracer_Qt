@@ -5,6 +5,7 @@
 #ifndef RAYTRACER_QT_BALL_H
 #define RAYTRACER_QT_BALL_H
 #include "Color.h"
+#include "Hit.h"
 #include "Ray.h"
 #include "Vector3d.h"
 
@@ -24,7 +25,7 @@ public:
     Color getColor() const;
     double getDepth() const;
 
-    double intersect(Ray ray) const;
+    Hit intersect(Ray ray) const;
 };
 
 

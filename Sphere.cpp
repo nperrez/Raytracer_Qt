@@ -24,20 +24,20 @@ double Sphere::getDepth() const {
     return center.getZ();
 }
 
-double Sphere::intersect(Ray ray) const {
+Hit Sphere::intersect(Ray ray) const {
     const double a = ray.getDirection()*ray.getDirection();
     const Vector3d v = ray.getLocation() - center;
     const double b = 2*(ray.getDirection()*v);
     const double c = v*v - radius*radius;
     const double d = b*b - 4*a*c;
     if (d < 0) {
-        return -1;
+        return Hit(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Color(0, 0, 0));
     }
 
     double lambda1 = (-b-sqrt(d))/(2*a);
 
     if (lambda1>=0) {
-        return lambda1;
+        return Hit(lambda1, ray.getLocation()+Vector3d(0, 0, lambda1), (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), color);
     }
-    return (-b+sqrt(d))/(2*a);
+    return Hit((-b+sqrt(d))/(2*a), ray.getLocation()+Vector3d(0, 0, lambda1), (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), color);
 }

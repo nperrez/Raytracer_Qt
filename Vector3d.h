@@ -18,11 +18,13 @@ public:
     double getX() const;
     double getY() const;
     double getZ() const;
+    double getLength() const;
 
     Vector3d operator+(const Vector3d &) const;
     Vector3d operator-(const Vector3d &) const;
     Vector3d operator*(double scalar) const;
     double operator*(const Vector3d &) const;
+    Vector3d operator/(double scalar) const;
 };
 
 

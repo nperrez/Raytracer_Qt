@@ -29,6 +29,10 @@ add_executable(Raytracer_Qt main.cpp
         Sphere.h
         Ray.cpp
         Ray.h
+        LightSource.cpp
+        LightSource.h
+        Hit.cpp
+        Hit.h
 )
 target_link_libraries(Raytracer_Qt
         Qt::Core

@@ -5,10 +5,9 @@
 #include <queue>
 
 #include "Sphere.h"
-#include "2d/circleVect.h"
 #include "Color.h"
+#include "LightSource.h"
 #include "Ray.h"
-#include "2d/Vector2d.h"
 #include "Vector3d.h"
 
 //Image properties
@@ -16,51 +15,21 @@ constexpr int width = 1000;
 constexpr int height = 1000;
 QColor BACKGROUND_COLOR = Qt::black;
 
-//Draw Circles using Vectors
-void drawCirclesVect(QImage& image) {
 
-    std::pmr::vector<CircleVect> circleVects;
-    std::pmr::vector<CircleVect>::iterator itcv;
-
-    circleVects.emplace_back(Vector2d(200, 400), 150, Color(0, 1, 0));
-    circleVects.emplace_back(Vector2d(400, 400), 150, Color(0, 0, 1));
-    circleVects.emplace_back(Vector2d(300, 573), 150, Color(1, 0, 0));
-
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-
-            bool inside = false;
-            Color sumColor(0, 0, 0);
-
-            for (auto it = circleVects.begin(); it != circleVects.end(); ++it) {
-
-                Vector2d p(x, y);
-                Vector2d pc = p - it->getCenter();
-
-                if (pc.length() <= it->getRadius()) {
-                    inside = true;
-                    sumColor = sumColor + it->getColor();
-                }
-            }
-
-            if (inside) {
-                image.setPixelColor(x, y, sumColor.getColor());
-            } else {
-                image.setPixelColor(x, y, BACKGROUND_COLOR);
-            }
-        }
-    }
-}
-
-void drawSpheres(QImage& image) {
-
+void drawSpheres(QImage &image) {
     std::pmr::vector<Sphere> spheres;
+    std::pmr::vector<LightSource> lightsources;
 
     Ray ray(width, height);
+    LightSource ls1(Vector3d(800, 500, 100), Color(1, 1, 1));
+    LightSource ls2(Vector3d(100, 400, 50), Color(1, 1, 1));
     Sphere sphere1(Vector3d(500, 510, 230), 150, Color(1, 0, 0));
-    Sphere sphere2(Vector3d(590, 500, 200), 150, Color(0, 0, 1));
-    Sphere sphere3(Vector3d(550, 550, 180), 150, Color(0, 1, 0));
+    Sphere sphere2(Vector3d(590, 500, 200), 150, Color(0, 1, 0));
+    Sphere sphere3(Vector3d(550, 550, 150), 150, Color(0, 0, 1));
     Sphere sphere4(Vector3d(520, 500, 100), 80, Color(1, 1, 0));
+
+    lightsources.emplace_back(ls1);
+    lightsources.emplace_back(ls2);
 
     spheres.emplace_back(sphere1);
     spheres.emplace_back(sphere2);
@@ -72,11 +41,19 @@ void drawSpheres(QImage& image) {
         for (int y = 0; y < height; y++) {
             double lambda = std::numeric_limits<double>::infinity();
             Color color(BACKGROUND_COLOR);
-            for (auto& sphere : spheres) {
-                double lambda1 = sphere.intersect(ray);
-                if (lambda1 >= 0 && lambda1 < lambda) {
-                    lambda = lambda1;
-                    color = sphere.getColor()*(1-lambda/sphere.getDepth());
+            for (auto &sphere: spheres) {
+                Hit hit = sphere.intersect(ray);
+                if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
+                    lambda = hit.getLambda();
+                    Color addColor = Color(0, 0, 0);
+                    for (auto &lightsource: lightsources) {
+                        Vector3d s = (lightsource.getPosition()-hit.getPosition())/(lightsource.getPosition()-hit.getPosition()).getLength();
+                        if (s*hit.getNormal() >= 0) {
+                            addColor = addColor + lightsource.getColor() * (s*hit.getNormal());
+                        }
+                        //std::cout << addColor.getR() << " " << addColor.getG() << " " << addColor.getB() << std::endl;
+                    }
+                    color = hit.getColor() * addColor + hit.getColor()*0.1;
                 }
             }
             if (lambda < std::numeric_limits<double>::infinity()) {
@@ -88,7 +65,6 @@ void drawSpheres(QImage& image) {
         }
         ray.incrementX();
     }
-
 }
 
 int main(int argc, char *argv[]) {

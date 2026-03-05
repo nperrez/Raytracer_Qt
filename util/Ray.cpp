@@ -4,7 +4,7 @@
 
 #include "Ray.h"
 
-Ray::Ray(int width, int height) : width(width), height(height) {
+Ray::Ray(int x, int y) : x(x), y(y) {
     this->location = Vector3d(0, 0, 0);
     this->direction = Vector3d(0,0,1);
 }

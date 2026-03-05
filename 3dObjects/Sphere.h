@@ -4,10 +4,10 @@
 
 #ifndef RAYTRACER_QT_BALL_H
 #define RAYTRACER_QT_BALL_H
-#include "Color.h"
-#include "Hit.h"
-#include "Ray.h"
-#include "Vector3d.h"
+#include "../util/Color.h"
+#include "../util/Hit.h"
+#include "../util/Ray.h"
+#include "../util/Vector3d.h"
 
 
 class Sphere {

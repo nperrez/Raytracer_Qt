@@ -4,7 +4,7 @@
 
 #include "Vector3d.h"
 
-#include <math.h>
+#include <cmath>
 
 Vector3d::Vector3d() : x(0), y(0), z(0){}
 

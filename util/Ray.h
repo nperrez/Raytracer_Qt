@@ -12,11 +12,11 @@ class Ray {
 private:
     Vector3d location;
     Vector3d direction;
-    int width, height;
+    int x, y;
     bool done =false;
 
 public:
-    Ray(int width, int height);
+    Ray(int x, int y);
     Vector3d getLocation();
     Vector3d getDirection();
     bool isDone();

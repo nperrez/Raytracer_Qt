@@ -4,8 +4,8 @@
 
 #ifndef RAYTRACER_QT_LIGHTSOURCE_H
 #define RAYTRACER_QT_LIGHTSOURCE_H
-#include "Color.h"
-#include "Vector3d.h"
+#include "../util/Color.h"
+#include "../util/Vector3d.h"
 
 
 class LightSource {

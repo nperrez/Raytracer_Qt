@@ -15,7 +15,6 @@ constexpr int width = 1000;
 constexpr int height = 1000;
 QColor BACKGROUND_COLOR = Qt::black;
 
-
 Color computeColor(std::pmr::vector<LightSource> lightsources, Hit hit) {
     Color addColor = Color(0, 0, 0);
     for (auto &lightsource: lightsources) {
@@ -27,7 +26,8 @@ Color computeColor(std::pmr::vector<LightSource> lightsources, Hit hit) {
     return addColor;
 }
 
-void drawSpheres(QImage &image, const std::pmr::vector<Sphere> &spheres, const std::pmr::vector<LightSource> &lightsources, Ray ray, int x, int y) {
+void drawSpheres(QImage &image, const std::pmr::vector<Sphere> &spheres,
+                 const std::pmr::vector<LightSource> &lightsources, Ray ray, int x, int y) {
     double lambda = std::numeric_limits<double>::infinity();
     Color color(BACKGROUND_COLOR);
     for (auto &sphere: spheres) {
@@ -35,7 +35,7 @@ void drawSpheres(QImage &image, const std::pmr::vector<Sphere> &spheres, const s
         if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
             lambda = hit.getLambda();
             Color addColor = computeColor(lightsources, hit);
-            color = hit.getColor() * addColor + hit.getColor()*0.1;
+            color = hit.getColor() * addColor + hit.getColor() * 0.1;
         }
     }
     if (lambda < std::numeric_limits<double>::infinity()) {
@@ -77,18 +77,16 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     QImage image(width, height, QImage::Format_ARGB32);
 
-    //Ray ray(0, 0);
+    //Scene setup
     auto spheres = createSpheres();
     auto lightsources = createLightsources();
 
     //Actual Raytracing stuff (+Multithreading)
-
     std::vector<int> xs(width);
     std::iota(xs.begin(), xs.end(), 0);
 
     std::for_each(std::execution::par, xs.begin(), xs.end(), [&](int x) {
         Ray ray(x, 0);
-        ray.resetY();
 
         for (int i = 0; i < x; i++) {
             ray.incrementX();

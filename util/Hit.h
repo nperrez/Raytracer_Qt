@@ -24,6 +24,8 @@ public:
     Vector3d getPosition();
     Vector3d getNormal();
     Color getColor();
+    void setU(double u);
+    void setV(double v);
     double getU();
     double getV();
 };

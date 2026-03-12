@@ -72,6 +72,29 @@ std::pmr::vector<LightSource> createLightsources() {
     return lightsources;
 }
 
+double getArea(Vector3d normal) {
+    return 0.5*normal.getLength();
+}
+
+bool intersectsTriangle(Ray ray, Triangle triangle, Hit hit) {
+    Vector3d p = hit.getPosition();
+    Triangle pbc = Triangle(p, triangle.getB(), triangle.getC());
+    Triangle pca = Triangle(p, triangle.getC(), triangle.getA());
+    Triangle pab = Triangle(p, triangle.getA(), triangle.getB());
+
+}
+
+void drawTriangles(QImage &image, const std::pmr::vector<Triangle> &triangles, std::pmr::vector<LightSource> &lightsources, Ray ray, int x, int y) {
+    double lambda = std::numeric_limits<double>::infinity();
+    Color color(BACKGROUND_COLOR);
+    for (auto &triangle: triangles) {
+        Hit hit = triangle.intersect(ray);
+        if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
+            lambda = hit.getLambda();
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     //Window Management

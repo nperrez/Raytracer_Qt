@@ -22,6 +22,14 @@ Color Hit::getColor() {
     return color;
 }
 
+void Hit::setU(double u) {
+    u = u;
+}
+
+void Hit::setV(double v) {
+    v = v;
+}
+
 double Hit::getU() {
     return u;
 }

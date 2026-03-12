@@ -17,11 +17,12 @@ private:
 
 public:
     Triangle(Vector3d a, Vector3d b, Vector3d c, Color color);
+    Triangle(Vector3d a, Vector3d b, Vector3d c);
     Vector3d getA();
     Vector3d getB();
     Vector3d getC();
     Color getColor();
-    Hit intersect(Ray ray);
+    Hit intersect(Ray ray) const;
 
 };
 

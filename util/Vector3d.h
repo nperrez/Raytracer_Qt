@@ -25,6 +25,7 @@ public:
     Vector3d operator*(double scalar) const;
     double operator*(const Vector3d &) const;
     Vector3d operator/(double scalar) const;
+    Vector3d operator/(const Vector3d &) const;
 };
 
 

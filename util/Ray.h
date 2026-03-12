@@ -17,6 +17,7 @@ private:
 
 public:
     Ray(int x, int y);
+    Ray(Vector3d location, Vector3d direction);
     Vector3d getLocation();
     Vector3d getDirection();
     bool isDone();

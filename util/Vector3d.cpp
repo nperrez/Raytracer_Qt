@@ -45,3 +45,7 @@ Vector3d Vector3d::operator*(double scalar) const {
 Vector3d Vector3d::operator/(double scalar) const {
     return Vector3d(x/scalar, y/scalar, z/scalar);
 }
+
+Vector3d Vector3d::operator/(const Vector3d &v) const {
+    return Vector3d(y*v.getZ() - z*v.getY(), z*v.getX() - x*v.getZ(), x*v.getY() - y*v.getX());
+}

@@ -12,6 +12,8 @@ class Hit {
 
 private:
     double lambda;
+    double u;
+    double v;
     Vector3d position;
     Vector3d normal;
     Color color;
@@ -22,6 +24,8 @@ public:
     Vector3d getPosition();
     Vector3d getNormal();
     Color getColor();
+    double getU();
+    double getV();
 };
 
 

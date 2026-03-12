@@ -33,6 +33,10 @@ add_executable(Raytracer_Qt main.cpp
         3dObjects/LightSource.h
         util/Hit.cpp
         util/Hit.h
+        3dObjects/Triangle.cpp
+        3dObjects/Triangle.h
+        util/Matrix.cpp
+        util/Matrix.h
 )
 target_link_libraries(Raytracer_Qt
         Qt::Core

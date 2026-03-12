@@ -9,6 +9,8 @@ Ray::Ray(int x, int y) : x(x), y(y) {
     this->direction = Vector3d(0,0,1);
 }
 
+Ray::Ray(Vector3d location, Vector3d direction) : location(location), direction(direction) {}
+
 Vector3d Ray::getLocation() {
     return this->location;
 }

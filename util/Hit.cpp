@@ -21,3 +21,11 @@ Vector3d Hit::getNormal() {
 Color Hit::getColor() {
     return color;
 }
+
+double Hit::getU() {
+    return u;
+}
+
+double Hit::getV() {
+    return v;
+}

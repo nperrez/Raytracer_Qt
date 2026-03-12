@@ -7,6 +7,7 @@
 #include "3dObjects/Sphere.h"
 #include "util/Color.h"
 #include "3dObjects/LightSource.h"
+#include "3dObjects/Triangle.h"
 #include "util/Ray.h"
 #include "util/Vector3d.h"
 
@@ -63,8 +64,8 @@ std::pmr::vector<Sphere> createSpheres() {
 std::pmr::vector<LightSource> createLightsources() {
     std::pmr::vector<LightSource> lightsources;
 
-    LightSource ls1(Vector3d(800, 500, 100), Color(1, 1, 1));
-    LightSource ls2(Vector3d(100, 400, 50), Color(1, 1, 1));
+    LightSource ls1(Vector3d(10, 0, 100), Color(1, 1, 1));
+    LightSource ls2(Vector3d(600, 600, -200), Color(1, 1, 1));
 
     lightsources.emplace_back(ls1);
     lightsources.emplace_back(ls2);

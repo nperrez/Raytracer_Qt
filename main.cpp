@@ -3,7 +3,6 @@
 #include <QImage>
 #include <queue>
 #include <execution>
-#include <iostream>
 
 #include "3dObjects/Sphere.h"
 #include "util/Color.h"
@@ -82,7 +81,10 @@ int main(int argc, char *argv[]) {
     Scene scene =  Scene(width, height, BACKGROUND_COLOR);
     scene.addSphere(Sphere(Vector3d(500, 500, 400), 180, Color(1, 0, 0)));
     scene.addTriangle(Triangle(Vector3d(300, 400, 200), Vector3d(200, 100, 100), Vector3d(350, 300, 250), Color(0, 1, 1)));
+    scene.addTriangle(Triangle(Vector3d(500, 400, 400), Vector3d(350, 300, 250), Vector3d(200, 100, 100), Color(1, 0, 1)));
+    scene.addTriangle(Triangle(Vector3d(300, 400, 200), Vector3d(350, 300, 250), Vector3d(500, 400, 400), Color(0, 1, 0)));
     scene.addLightSource(LightSource(Vector3d(100, 100, 100), Color(1, 1, 1)));
+    scene.addLightSource(LightSource(Vector3d(60, 120, -100), Color(1, 1, 1)));
 
     //Window Management
     QApplication a(argc, argv);

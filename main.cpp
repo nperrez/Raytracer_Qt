@@ -18,24 +18,29 @@ constexpr int height = 1000;
 QColor BACKGROUND_COLOR = Qt::black;
 
 Color computeColor(std::pmr::vector<LightSource> lightsources, Hit hit, const Scene& scene) {
-    Color addColor = Color(0, 0, 0);
+    auto addColor = Color(0, 0, 0);
     for (auto &lightsource: lightsources) {
         Vector3d s = (lightsource.getPosition()-hit.getPosition())/(lightsource.getPosition()-hit.getPosition()).getLength();
         if (s*hit.getNormal() >= 0) {
-            Ray ray = Ray(hit.getPosition() + s * 10e-6, s);
+            bool blocked = false;
+            const auto ray = Ray(hit.getPosition() + s * 10e-6, s);
             for (auto &sphere: scene.getSpheres()) {
-                Hit hit2 = sphere.intersect(ray);
-                if (hit2.getLambda() >= 0) {
-                    return {0, 0, 0};
+                if (Hit hit2 = sphere.intersect(ray); hit2.getLambda() >= 0) {
+                    blocked = true;
+                    break;
                 }
             }
-            for (auto &triangle: scene.getTriangles()) {
-                Hit hit2 = triangle.intersect(ray);
-                if (hit2.getLambda() >= 0) {
-                    return {0, 0, 0};
+            if (!blocked) {
+                for (auto &triangle: scene.getTriangles()) {
+                    if (Hit hit2 = triangle.intersect(ray); hit2.getLambda() >= 0) {
+                        blocked = true;
+                        break;
+                    }
                 }
             }
-            addColor = addColor + lightsource.getColor() * (s*hit.getNormal());
+            if (!blocked) {
+                addColor = addColor + lightsource.getColor() * (s*hit.getNormal());
+            }
         }
     }
     return addColor;
@@ -100,10 +105,6 @@ int main(int argc, char *argv[]) {
         for (int y = 0; y < height; y++) {
             castRay(image, scene, ray, x, y);
             ray.incrementY();
-        }
-
-        for (int i = 0; i < x; i++) {
-            ray.incrementX();
         }
     });
 

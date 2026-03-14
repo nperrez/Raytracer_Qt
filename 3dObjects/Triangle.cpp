@@ -4,12 +4,14 @@
 
 #include "Triangle.h"
 
-Triangle::Triangle(Vector3d a, Vector3d b, Vector3d c, Color color) : a(a), b(b), c(c), color(color) {
-    normal = (b-a)/(c-a);
+Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Color &color) : a(a), b(b), c(c), color(color) {
+    cross = (b-a)/(c-a);
+    normal = cross/cross.getLength();
 }
 
-Triangle::Triangle(Vector3d a, Vector3d b, Vector3d c) : a(a), b(b), c(c), color(Color(0, 0, 0)) {
-    normal = (b-a)/(c-a);
+Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c) : a(a), b(b), c(c), color(Color(0, 0, 0)) {
+    cross = (b-a)/(c-a);
+    normal = cross/cross.getLength();
 }
 
 Vector3d Triangle::getA() const {
@@ -33,16 +35,16 @@ Color Triangle::getColor() const {
 }
 
 double Triangle::getArea() const {
-    return 0.5*normal.getLength();
+    return 0.5*cross.getLength();
 }
 
 Hit Triangle::intersect(Ray ray) const {
     double lambda = ((a-ray.getLocation())*normal)/(ray.getDirection()*normal);
     if (lambda > 0) {
-        Hit hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, color);
-        Triangle pbc = Triangle(hit.getPosition(), b, c);
-        Triangle pca = Triangle(hit.getPosition(), c, a);
-        Triangle pab = Triangle(hit.getPosition(), a, b);
+        auto hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, color);
+        auto pbc = Triangle(hit.getPosition(), b, c);
+        auto pca = Triangle(hit.getPosition(), c, a);
+        auto pab = Triangle(hit.getPosition(), a, b);
         double lambdaA = pbc.getArea()/this->getArea();
         double lambdaB = pca.getArea()/this->getArea();
         double lambdaC = pab.getArea()/this->getArea();

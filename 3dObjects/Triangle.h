@@ -12,12 +12,12 @@
 class Triangle {
 
 private:
-    Vector3d a, b, c, normal;
+    Vector3d a, b, c, cross, normal;
     Color color;
 
 public:
-    Triangle(Vector3d a, Vector3d b, Vector3d c, Color color);
-    Triangle(Vector3d a, Vector3d b, Vector3d c);
+    Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Color &color);
+    Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c);
     [[nodiscard]] Vector3d getA() const;
     [[nodiscard]] Vector3d getB() const;
     [[nodiscard]] Vector3d getC() const;

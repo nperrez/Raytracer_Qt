@@ -22,12 +22,12 @@ Color Hit::getColor() {
     return color;
 }
 
-void Hit::setU(double u) {
-    u = u;
+void Hit::setU(const double u) {
+    this->u = u;
 }
 
 void Hit::setV(double v) {
-    v = v;
+    this->v = v;
 }
 
 double Hit::getU() {

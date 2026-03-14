@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
     //Scene setup
     auto scene =  Scene(width, height, BACKGROUND_COLOR);
     scene.addSphere(Sphere(Vector3d(500, 500, 300), 200, Color(0, 1, 0)));
-    scene.addTriangle(Triangle(Vector3d(330, 350, 200), Vector3d(300, 300, 250), Vector3d(220, 350, 200), Color(0, 1, 1)));
-    scene.addTriangle(Triangle(Vector3d(300, 300, 250), Vector3d(330, 350, 200), Vector3d(900, 260, 70), Color(1, 0, 1)));
+    scene.addTriangle(Triangle(Vector3d(330, 350, 200), Vector3d(300, 150, 250), Vector3d(220, 350, 200), Color(0, 1, 1)));
+    scene.addTriangle(Triangle(Vector3d(300, 150, 250), Vector3d(330, 350, 200), Vector3d(900, 260, 70), Color(1, 0, 1)));
     scene.addLightSource(LightSource(Vector3d(150, 150, 230), Color(1, 1, 1)));
     scene.addLightSource(LightSource(Vector3d(170, 170, 180), Color(1, 1, 1)));
 

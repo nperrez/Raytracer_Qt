@@ -15,7 +15,7 @@
 //Image properties
 constexpr int width = 1000;
 constexpr int height = 1000;
-QColor BACKGROUND_COLOR = Qt::black;
+QColor BACKGROUND_COLOR = Qt::lightGray;
 
 Color computeColor(std::pmr::vector<LightSource> lightsources, Hit hit, const Scene& scene) {
     auto addColor = Color(0, 0, 0);
@@ -84,11 +84,39 @@ int main(int argc, char *argv[]) {
 
     //Scene setup
     auto scene =  Scene(width, height, BACKGROUND_COLOR);
-    scene.addSphere(Sphere(Vector3d(500, 500, 300), 200, Color(0, 1, 0)));
-    scene.addTriangle(Triangle(Vector3d(330, 350, 200), Vector3d(300, 150, 250), Vector3d(220, 350, 200), Color(0, 1, 1)));
-    scene.addTriangle(Triangle(Vector3d(300, 150, 250), Vector3d(330, 350, 200), Vector3d(900, 260, 70), Color(1, 0, 1)));
-    scene.addLightSource(LightSource(Vector3d(150, 150, 230), Color(1, 1, 1)));
-    scene.addLightSource(LightSource(Vector3d(170, 170, 180), Color(1, 1, 1)));
+    //scene.addSphere(Sphere(Vector3d(500, 500, 300), 200, Color(0, 1, 0)));
+    //scene.addTriangle(Triangle(Vector3d(330, 350, 200), Vector3d(300, 150, 250), Vector3d(220, 350, 200), Color(0, 1, 1)));
+    //scene.addTriangle(Triangle(Vector3d(300, 150, 250), Vector3d(330, 350, 200), Vector3d(900, 260, 70), Color(1, 0, 1)));
+    //scene.addLightSource(LightSource(Vector3d(150, 150, 230), Color(1, 1, 1)));
+    //scene.addLightSource(LightSource(Vector3d(170, 170, 180), Color(1, 1, 1)));
+
+    scene.addTriangle(Triangle(Vector3d(800,300,0),Vector3d(-200,300,0),Vector3d(800,300,1000),Color(0.42,0.71,0.53)));
+    scene.addTriangle(Triangle(Vector3d(800,300,1000),Vector3d(-200,300,0),Vector3d(-200,300,1000),Color(0.61,0.46,0.77)));
+
+    scene.addSphere(Sphere(Vector3d(550,450,800),120,Color(0.2,0.7,0.9)));
+
+    scene.addLightSource(LightSource(Vector3d(100,700,100),Color(1,1,1)));
+    scene.addLightSource(LightSource(Vector3d(300,800,150),Color(1,1,1)));
+
+    // cube
+
+    scene.addTriangle(Triangle(Vector3d(320,400,360),Vector3d(230,400,420),Vector3d(400,520,420),Color(0.92,0.31,0.28)));
+    scene.addTriangle(Triangle(Vector3d(400,520,420),Vector3d(230,400,420),Vector3d(310,520,480),Color(0.34,0.13,0.47)));
+
+    scene.addTriangle(Triangle(Vector3d(350,430,500),Vector3d(260,430,560),Vector3d(430,550,560),Color(0.75,0.22,0.63)));
+    scene.addTriangle(Triangle(Vector3d(430,550,560),Vector3d(260,430,560),Vector3d(340,550,620),Color(0.26,0.66,0.91)));
+
+    scene.addTriangle(Triangle(Vector3d(230,400,420),Vector3d(260,430,560),Vector3d(340,550,620),Color(0.87,0.54,0.19)));
+    scene.addTriangle(Triangle(Vector3d(340,550,620),Vector3d(230,400,420),Vector3d(310,520,480),Color(0.57,0.34,0.78)));
+
+    scene.addTriangle(Triangle(Vector3d(350,430,500),Vector3d(320,400,360),Vector3d(430,550,560),Color(0.21,0.92,0.71)));
+    scene.addTriangle(Triangle(Vector3d(430,550,560),Vector3d(320,400,360),Vector3d(400,520,420),Color(0.93,0.49,0.37)));
+
+    scene.addTriangle(Triangle(Vector3d(260,430,560),Vector3d(230,400,420),Vector3d(350,430,500),Color(0.46,0.82,0.28)));
+    scene.addTriangle(Triangle(Vector3d(350,430,500),Vector3d(230,400,420),Vector3d(320,400,360),Color(0.69,0.26,0.57)));
+
+    scene.addTriangle(Triangle(Vector3d(400,520,420),Vector3d(310,520,480),Vector3d(430,550,560),Color(0.32,0.74,0.86)));
+    scene.addTriangle(Triangle(Vector3d(430,550,560),Vector3d(310,520,480),Vector3d(340,550,620),Color(0.78,0.53,0.15)));
 
     //Window Management
     QApplication a(argc, argv);

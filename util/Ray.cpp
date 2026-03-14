@@ -4,8 +4,8 @@
 
 #include "Ray.h"
 
-Ray::Ray(int x, int y) : x(x), y(y) {
-    this->location = Vector3d(0, 0, 0);
+Ray::Ray(int x, int y) {
+    this->location = Vector3d(x, y, 0);
     this->direction = Vector3d(0,0,1);
 }
 

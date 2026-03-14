@@ -12,17 +12,19 @@
 class Triangle {
 
 private:
-    Vector3d a, b, c, v, w;
+    Vector3d a, b, c, normal;
     Color color;
 
 public:
     Triangle(Vector3d a, Vector3d b, Vector3d c, Color color);
     Triangle(Vector3d a, Vector3d b, Vector3d c);
-    Vector3d getA();
-    Vector3d getB();
-    Vector3d getC();
-    Color getColor();
-    Hit intersect(Ray ray) const;
+    [[nodiscard]] Vector3d getA() const;
+    [[nodiscard]] Vector3d getB() const;
+    [[nodiscard]] Vector3d getC() const;
+    [[nodiscard]] Vector3d getNormal() const;
+    [[nodiscard]] Color getColor() const;
+    [[nodiscard]] double getArea() const;
+    [[nodiscard]] Hit intersect(Ray ray) const;
 
 };
 

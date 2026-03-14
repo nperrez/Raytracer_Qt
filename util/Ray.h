@@ -12,7 +12,6 @@ class Ray {
 private:
     Vector3d location;
     Vector3d direction;
-    int x, y;
     bool done =false;
 
 public:

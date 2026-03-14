@@ -5,31 +5,51 @@
 #include "Triangle.h"
 
 Triangle::Triangle(Vector3d a, Vector3d b, Vector3d c, Color color) : a(a), b(b), c(c), color(color) {
-    v = b-a;
-    w = c-a;
+    normal = (b-a)/(c-a);
 }
 
-Triangle::Triangle(Vector3d a, Vector3d b, Vector3d c) : a(a), b(b), c(c), color(Color(0, 0, 0)) {}
+Triangle::Triangle(Vector3d a, Vector3d b, Vector3d c) : a(a), b(b), c(c), color(Color(0, 0, 0)) {
+    normal = (b-a)/(c-a);
+}
 
-Vector3d Triangle::getA() {
+Vector3d Triangle::getA() const {
     return a;
 }
 
-Vector3d Triangle::getB() {
+Vector3d Triangle::getB() const {
     return b;
 }
 
-Vector3d Triangle::getC() {
+Vector3d Triangle::getC() const {
     return c;
 }
 
-Color Triangle::getColor() {
+Vector3d Triangle::getNormal() const {
+    return normal;
+}
+
+Color Triangle::getColor() const {
     return color;
 }
 
-Hit Triangle::intersect(Ray ray) const {
-    Vector3d normal = v/w;
-    double lambda = ((a-ray.getLocation())*normal)/(ray.getDirection()*normal);
+double Triangle::getArea() const {
+    return 0.5*normal.getLength();
+}
 
-    return Hit(lambda, ray.getLocation() + Vector3d(0, 0, lambda), normal, color);
+Hit Triangle::intersect(Ray ray) const {
+    double lambda = ((a-ray.getLocation())*normal)/(ray.getDirection()*normal);
+    if (lambda > 0) {
+        Hit hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, color);
+        Triangle pbc = Triangle(hit.getPosition(), b, c);
+        Triangle pca = Triangle(hit.getPosition(), c, a);
+        Triangle pab = Triangle(hit.getPosition(), a, b);
+        double lambdaA = pbc.getArea()/this->getArea();
+        double lambdaB = pca.getArea()/this->getArea();
+        double lambdaC = pab.getArea()/this->getArea();
+        if (lambdaA >= 0 && lambdaB >= 0 && lambdaC >= 0 && std::abs(lambdaA + lambdaB + lambdaC - 1.0) < 1e-6) {
+            return {lambda, ray.getLocation() + ray.getDirection() * lambda, normal, color};
+        }
+        return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, color};
+    }
+    return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, color};
 }

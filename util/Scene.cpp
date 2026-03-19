@@ -4,7 +4,7 @@
 
 #include "Scene.h"
 
-Scene::Scene(int width, int height, Color BACKGROUND_COLOR) : width(width), height(height), BACKGROUND_COLOR(BACKGROUND_COLOR){}
+Scene::Scene(int width, int height, Camera camera, Color BACKGROUND_COLOR) : width(width), height(height), camera(camera), BACKGROUND_COLOR(BACKGROUND_COLOR){}
 
 int Scene::getWidth() const {
     return width;
@@ -40,4 +40,8 @@ std::pmr::vector<Triangle> Scene::getTriangles() const {
 
 std::pmr::vector<LightSource> Scene::getLightSources() const {
     return lightsources;
+}
+
+Camera Scene::getCamera() const {
+    return camera;
 }

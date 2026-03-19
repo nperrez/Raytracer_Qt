@@ -19,6 +19,7 @@ public:
     double getY() const;
     double getZ() const;
     double getLength() const;
+    Vector3d normalize();
 
     Vector3d operator+(const Vector3d &) const;
     Vector3d operator-(const Vector3d &) const;

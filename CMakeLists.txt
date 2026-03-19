@@ -12,6 +12,7 @@ find_package(Qt6 COMPONENTS
         Gui
         Widgets
         REQUIRED)
+find_package(TBB REQUIRED)
 
 add_executable(Raytracer_Qt main.cpp
         main.cpp
@@ -39,8 +40,11 @@ add_executable(Raytracer_Qt main.cpp
         util/Matrix.h
         util/Scene.cpp
         util/Scene.h
+        3dObjects/Camera.cpp
+        3dObjects/Camera.h
 )
 target_link_libraries(Raytracer_Qt
+        PRIVATE TBB::tbb
         Qt::Core
         Qt::Gui
         Qt::Widgets

@@ -16,7 +16,7 @@
 //Image properties
 constexpr int width = 1920;
 constexpr int height = 1200;
-QColor BACKGROUND_COLOR = Qt::lightGray;
+QColor BACKGROUND_COLOR = Qt::black;
 
 Color computeColor(Hit hit, const Scene& scene) {
     auto addColor = Color(0, 0, 0);
@@ -81,25 +81,34 @@ void castRay(QImage &image, const Scene &scene, const Ray &ray, int x, int y) {
     }
 }
 
-void castRay(QImage &image, const Scene scene, int x, int y) {
-
-}
-
 int main(int argc, char *argv[]) {
 
     //Scene setup
-    Camera camera = Camera(Vector3d(500, 500, 0), Vector3d(500, 500, 500), 2.4, width, height);
+    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(300, 300, 200), 2, width, height);
     auto scene =  Scene(width, height, camera, BACKGROUND_COLOR);
-    scene.addSphere(Sphere(Vector3d(500, 500, 300), 100, Color(0, 1, 0)));
-    scene.addTriangle(Triangle(Vector3d(330, 350, 200), Vector3d(300, 150, 250), Vector3d(220, 350, 200), Color(0, 1, 1)));
-    scene.addTriangle(Triangle(Vector3d(300, 150, 250), Vector3d(330, 350, 200), Vector3d(900, 260, 70), Color(1, 0, 1)));
-    scene.addLightSource(LightSource(Vector3d(150, 150, 230), Color(1, 1, 1)));
-    scene.addLightSource(LightSource(Vector3d(170, 170, 180), Color(1, 1, 1)));
-    scene.addLightSource(LightSource(Vector3d(870, 170, 180), Color(1, 1, 1)));
 
-    //scene.addSphere(Sphere(Vector3d(400, 200, 300), 50, Color(0, 1, 0)));
-    //scene.addTriangle(Triangle(Vector3d(600, 400, 500), Vector3d(200, 400, 500), Vector3d(200, 500, 0), Color(1, 1, 1)));
-    //scene.addLightSource(LightSource(Vector3d(400, 0, 300), Color(1, 0, 0)));
+    // Add Spheres
+    scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Color(1.0, 0.2, 0.2)));     // Red sphere (center)
+    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Color(0.2, 1.0, 0.2)));     // Green sphere (left)
+    scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Color(0.2, 0.2, 1.0)));     // Blue sphere (right)
+    scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Color(1.0, 1.0, 0.2)));     // Yellow sphere (top)
+
+    // Add Triangles (floor and walls)
+    // Floor triangles (gray)
+    scene.addTriangle(Triangle(Vector3d(600, 0, 400), Vector3d(0, 0, 400),  Vector3d(600, 600, 400), Color(0.6, 0.6, 0.6)));
+    scene.addTriangle(Triangle(Vector3d(600, 600, 400), Vector3d(0, 0, 400),  Vector3d(0, 600, 400), Color(0.6, 0.6, 0.6)));
+
+    // Back wall triangles (light gray)
+    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 400), Vector3d(600, 0, 0), Color(0.7, 0.7, 0.7)));
+    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 0), Vector3d(0, 0, 0), Color(0.7, 0.7, 0.7)));
+
+    // Colored triangle for visual interest (magenta)
+    scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Color(1.0, 0.4, 0.8)));
+
+    // Add Light Sources
+    scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)
+    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(0.8, 0.8, 1.0)));    // Blue-tinted light (right)
+
 
 
 

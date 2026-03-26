@@ -18,6 +18,10 @@ constexpr int width = 1920;
 constexpr int height = 1200;
 QColor BACKGROUND_COLOR = Qt::black;
 
+Color shadeLambert(Hit &hit, const Scene &scene, ) {
+
+}
+
 Color computeColor(Hit hit, const Scene& scene) {
     auto addColor = Color(0, 0, 0);
     for (auto &lightsource: scene.getLightSources()) {
@@ -84,7 +88,7 @@ void castRay(QImage &image, const Scene &scene, const Ray &ray, int x, int y) {
 int main(int argc, char *argv[]) {
 
     //Scene setup
-    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(300, 300, 200), 2, width, height);
+    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(300, 300, 200), 1.7, width, height);
     auto scene =  Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Add Spheres
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 0), Vector3d(0, 0, 0), Color(0.7, 0.7, 0.7)));
 
     // Colored triangle for visual interest (magenta)
-    scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Color(1.0, 0.4, 0.8)));
+    //scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Color(1.0, 0.4, 0.8)));
 
     // Add Light Sources
     scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)
@@ -125,7 +129,6 @@ int main(int argc, char *argv[]) {
         for (int y = 0; y < height; y++) {
             Ray ray = scene.getCamera().getRay(x, y);
             castRay(image, scene, ray, x, y);
-            //ray.incrementY();
         }
     });
 

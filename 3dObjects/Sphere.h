@@ -4,10 +4,10 @@
 
 #ifndef RAYTRACER_QT_BALL_H
 #define RAYTRACER_QT_BALL_H
-#include "../util/Color.h"
 #include "../util/Hit.h"
 #include "../util/Ray.h"
 #include "../util/Vector3d.h"
+#include <../../../util/Material.h>
 
 
 class Sphere {
@@ -15,14 +15,14 @@ class Sphere {
 private:
     Vector3d center;
     double radius;
-    Color color;
+    Material material;
 
 public:
-    Sphere(const Vector3d &center, double radius, const Color &color);
+    Sphere(const Vector3d &center, double radius, const Material &material);
 
     Vector3d getCenter() const;
     double getRadius() const;
-    Color getColor() const;
+    Material getMaterial() const;
     double getDepth() const;
 
     Hit intersect(Ray ray) const;

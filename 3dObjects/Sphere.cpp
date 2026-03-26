@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-Sphere::Sphere(const Vector3d &center, const double radius, const Color &color) : center(center), radius(radius), color(color) {}
+Sphere::Sphere(const Vector3d &center, const double radius, const Material &material) : center(center), radius(radius), material(material) {}
 
 Vector3d Sphere::getCenter() const {
     return center;
@@ -16,8 +16,8 @@ double Sphere::getRadius() const {
     return radius;
 }
 
-Color Sphere::getColor() const {
-    return color;
+Material Sphere::getMaterial() const {
+    return material;
 }
 
 double Sphere::getDepth() const {
@@ -37,8 +37,8 @@ Hit Sphere::intersect(Ray ray) const {
     double lambda1 = (-b-sqrt(d))/(2*a);
 
     if (lambda1>=0) {
-        return Hit(lambda1, ray.getLocation()+ray.getDirection()*lambda1, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), color);
+        return Hit(lambda1, ray.getLocation()+ray.getDirection()*lambda1, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), material.getAlbedo());
     }
     double lambda2 = (-b+sqrt(d))/(2*a);
-    return Hit(lambda2, ray.getLocation()+ray.getDirection()*lambda2, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), color);
+    return Hit(lambda2, ray.getLocation()+ray.getDirection()*lambda2, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), material.getAlbedo());
 }

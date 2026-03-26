@@ -5,6 +5,7 @@
 #ifndef RAYTRACER_QT_HIT_H
 #define RAYTRACER_QT_HIT_H
 #include "Color.h"
+#include "Material.h"
 #include "Vector3d.h"
 
 
@@ -16,13 +17,14 @@ private:
     double v;
     Vector3d position;
     Vector3d normal;
-    Color color;
+    Material material;
 
 public:
-    Hit(double lambda, Vector3d position, Vector3d normal, Color color);
+    Hit(double lambda, Vector3d position, Vector3d normal, Material material);
     double getLambda();
     Vector3d getPosition();
     Vector3d getNormal();
+    Material getMaterial();
     Color getColor();
     void setU(double u);
     void setV(double v);

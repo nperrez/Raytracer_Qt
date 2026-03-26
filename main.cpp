@@ -125,7 +125,6 @@ int main(int argc, char *argv[]) {
         for (int y = 0; y < height; y++) {
             Ray ray = scene.getCamera().getRay(x, y);
             castRay(image, scene, ray, x, y);
-            //ray.incrementY();
         }
     });
 

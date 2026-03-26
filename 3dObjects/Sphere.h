@@ -8,6 +8,7 @@
 #include "../util/Hit.h"
 #include "../util/Ray.h"
 #include "../util/Vector3d.h"
+#include <../../../util/Material.h>
 
 
 class Sphere {
@@ -15,13 +16,14 @@ class Sphere {
 private:
     Vector3d center;
     double radius;
-    Color color;
+    Material material;
 
 public:
-    Sphere(const Vector3d &center, double radius, const Color &color);
+    Sphere(const Vector3d &center, double radius, const Material &material);
 
     Vector3d getCenter() const;
     double getRadius() const;
+    Material getMaterial() const;
     Color getColor() const;
     double getDepth() const;
 

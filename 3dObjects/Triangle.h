@@ -8,20 +8,22 @@
 #include <../../../util/Color.h>
 #include <../../../util/Ray.h>
 #include <../../../util/Hit.h>
+#include <../../../util/Material.h>
 
 class Triangle {
 
 private:
     Vector3d a, b, c, cross, normal;
-    Color color;
+    Material material;
 
 public:
-    Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Color &color);
+    Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material);
     Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c);
     [[nodiscard]] Vector3d getA() const;
     [[nodiscard]] Vector3d getB() const;
     [[nodiscard]] Vector3d getC() const;
     [[nodiscard]] Vector3d getNormal() const;
+    [[nodiscard]] Material getMaterial() const;
     [[nodiscard]] Color getColor() const;
     [[nodiscard]] double getArea() const;
     [[nodiscard]] Hit intersect(Ray ray) const;

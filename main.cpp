@@ -24,7 +24,7 @@ Color shadeBlinnPhong(Scene scene, Hit hit, LightSource lightSource) {
     Vector3d lightDirection = lightSource.getPosition() - hit.getPosition();
     Vector3d viewDirection = scene.getCamera().getForward();
     Vector3d h = (lightDirection + viewDirection).normalize() / (lightDirection + viewDirection).getLength();
-    auto material = std::dynamic_pointer_cast<BlinnPhong>(hit.getMaterial());
+    //auto material = std::dynamic_pointer_cast<BlinnPhong>(hit.getMaterial());
 
 }
 
@@ -98,22 +98,22 @@ int main(int argc, char *argv[]) {
     auto scene =  Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Add Spheres
-    scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Color(1.0, 0.2, 0.2)));     // Red sphere (center)
-    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Color(0.2, 1.0, 0.2)));     // Green sphere (left)
-    scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Color(0.2, 0.2, 1.0)));     // Blue sphere (right)
-    scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Color(1.0, 1.0, 0.2)));     // Yellow sphere (top)
+    scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Material(Lambert, Color(1.0, 0.2, 0.2))));     // Red sphere (center)
+    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(Lambert, Color(0.2, 1.0, 0.2))));     // Green sphere (left)
+    scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Material(Lambert, Color(0.2, 0.2, 1.0))));     // Blue sphere (right)
+    scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Material(Lambert, Color(1.0, 1.0, 0.2))));     // Yellow sphere (top)
 
     // Add Triangles (floor and walls)
     // Floor triangles (gray)
-    scene.addTriangle(Triangle(Vector3d(600, 0, 400), Vector3d(0, 0, 400),  Vector3d(600, 600, 400), Color(0.6, 0.6, 0.6)));
-    scene.addTriangle(Triangle(Vector3d(600, 600, 400), Vector3d(0, 0, 400),  Vector3d(0, 600, 400), Color(0.6, 0.6, 0.6)));
+    scene.addTriangle(Triangle(Vector3d(600, 0, 400), Vector3d(0, 0, 400),  Vector3d(600, 600, 400), Material(Lambert, Color(0.6, 0.6, 0.6))));
+    scene.addTriangle(Triangle(Vector3d(600, 600, 400), Vector3d(0, 0, 400),  Vector3d(0, 600, 400), Material(Lambert, Color(0.6, 0.6, 0.6))));
 
     // Back wall triangles (light gray)
-    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 400), Vector3d(600, 0, 0), Color(0.7, 0.7, 0.7)));
-    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 0), Vector3d(0, 0, 0), Color(0.7, 0.7, 0.7)));
+    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 400), Vector3d(600, 0, 0), Material(Lambert, Color(0.7, 0.7, 0.7))));
+    scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 0), Vector3d(0, 0, 0), Material(Lambert, Color(0.7, 0.7, 0.7))));
 
     // Colored triangle for visual interest (magenta)
-    scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Color(1.0, 0.4, 0.8)));
+    scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Material(Lambert, Color(1.0, 0.4, 0.8))));
 
     // Add Light Sources
     scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)

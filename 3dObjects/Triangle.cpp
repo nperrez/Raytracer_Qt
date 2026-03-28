@@ -9,7 +9,7 @@ Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, cons
     normal = cross/cross.getLength();
 }
 
-Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c) : a(a), b(b), c(c), material(Lambert(Color(0, 0, 0))) {
+Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c) : a(a), b(b), c(c), material(Lambert, Color(0, 0, 0)) {
     cross = (b-a)/(c-a);
     normal = cross/cross.getLength();
 }
@@ -45,7 +45,7 @@ double Triangle::getArea() const {
 Hit Triangle::intersect(Ray ray) const {
     double lambda = ((a-ray.getLocation())*normal)/(ray.getDirection()*normal);
     if (lambda > 0) {
-        auto hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getColor());
+        auto hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial());
         auto pbc = Triangle(hit.getPosition(), b, c);
         auto pca = Triangle(hit.getPosition(), c, a);
         auto pab = Triangle(hit.getPosition(), a, b);
@@ -53,9 +53,9 @@ Hit Triangle::intersect(Ray ray) const {
         double lambdaB = pca.getArea()/this->getArea();
         double lambdaC = pab.getArea()/this->getArea();
         if (lambdaA >= 0 && lambdaB >= 0 && lambdaC >= 0 && std::abs(lambdaA + lambdaB + lambdaC - 1.0) < 1e-6) {
-            return {lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getColor()};
+            return {lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
         }
-        return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getColor()};
+        return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
     }
-    return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getColor()};
+    return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
 }

@@ -35,14 +35,14 @@ Hit Sphere::intersect(Ray ray) const {
     const double c = v*v - radius*radius;
     const double d = b*b - 4*a*c;
     if (d < 0) {
-        return Hit(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Color(0, 0, 0));
+        return Hit(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Material(Lambert, Color(0, 0, 0)));
     }
 
     double lambda1 = (-b-sqrt(d))/(2*a);
 
     if (lambda1>=0) {
-        return Hit(lambda1, ray.getLocation()+ray.getDirection()*lambda1, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), this->getColor());
+        return Hit(lambda1, ray.getLocation()+ray.getDirection()*lambda1, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), this->getMaterial());
     }
     double lambda2 = (-b+sqrt(d))/(2*a);
-    return Hit(lambda2, ray.getLocation()+ray.getDirection()*lambda2, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), this->getColor());
+    return Hit(lambda2, ray.getLocation()+ray.getDirection()*lambda2, (v+Vector3d(0, 0, lambda1))/(v+Vector3d(0, 0, lambda1)).getLength(), this->getMaterial());
 }

@@ -6,53 +6,44 @@
 #define RAYTRACER_QT_MATERIAL_H
 #include "Color.h"
 
+enum MaterialType {Lambert, Phong, BlinnPhong};
 
 class Material {
 private:
+    MaterialType type;
     Color albedo;
-
-public:
-    Material(Color albedo) : albedo(albedo) {}
-    virtual ~Material() = default;
-
-    Color getAlbedo() const {
-        return albedo;
-    }
-};
-
-class Lambert : public Material {
-
-public:
-    Lambert(Color albedo) : Material(albedo) {}
-};
-
-class Phong : public Material {
-private:
     double shininess;
     double ks;
     double ka;
     double kd;
 
 public:
-    Phong(const Color &albedo, const double shininess, const double ks, const double ka, const double kd) : Material(albedo), shininess(shininess), ks(ks), ka(ka), kd(kd) {}
-    double getShininess() {
+    Material(MaterialType type, Color albedo) : type(type), albedo(albedo) {}
+    Material(MaterialType type, Color albedo, double shininess, double ks, double ka, double kd) : type(type), albedo(albedo), shininess(shininess), ks(ks), ka(ka), kd(kd) {}
+
+    MaterialType getType() const {
+        return type;
+    }
+
+    Color getAlbedo() const {
+        return albedo;
+    }
+
+    double getShininess() const {
         return shininess;
     }
-    double getKs() {
+
+    double getKs() const {
         return ks;
     }
-    double getKa() {
+
+    double getKa() const {
         return ka;
     }
-    double getKd() {
+
+    double getKd() const {
         return kd;
     }
 };
-
-class BlinnPhong : public Phong {
-public:
-    BlinnPhong(const Color &albedo, const double shininess, const double ks, const double ka, const double kd) : Phong(albedo, shininess, ks, ka, kd) {}
-};
-
 
 #endif //RAYTRACER_QT_MATERIAL_H

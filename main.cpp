@@ -122,15 +122,15 @@ void castRay(QImage &image, const Scene &scene, const Ray &ray, int x, int y) {
 int main(int argc, char *argv[]) {
 
     //Scene setup
-    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(500, 500, 0), 1.6, width, height);
+    const auto camera = Camera(Vector3d(300, 350, -300), Vector3d(500, 500, 0), 1.6, width, height);
     auto scene =  Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Add Spheres
-    /*scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Material(Lambert, Color(1.0, 0.2, 0.2))));     // Red sphere (center)
-    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(BlinnPhong, Color(0, 1, 0), 3, 1, 1, 1)));
+    scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Material(BlinnPhong, Color(1.0, 0, 0), 25, 1, 0.1, 1)));     // Red sphere (center)
+    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(BlinnPhong, Color(0, 1, 0), 25, 1, 0.1, 1)));
     //scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(Lambert, Color(0, 1, 0)))); // Green sphere (left)
-    scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Material(Lambert, Color(0.2, 0.2, 1.0))));     // Blue sphere (right)
-    scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Material(Lambert, Color(1.0, 1.0, 0.2))));     // Yellow sphere (top)
+    scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Material(BlinnPhong, Color(0.2, 0.2, 1.0), 25, 1, 0.1, 1)));     // Blue sphere (right)
+    scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Material(BlinnPhong, Color(1.0, 1.0, 0.2), 25, 1, 0.1, 1)));     // Yellow sphere (top)
 
     // Add Triangles (floor and walls)
     // Floor triangles (gray)
@@ -143,10 +143,11 @@ int main(int argc, char *argv[]) {
 
     // Add Light Sources
     scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)
-    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(1, 1, 1.0)));    // Blue-tinted light (right)*/
+    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(1, 1, 1.0)));    // Blue-tinted light (right)
 
-    scene.addSphere(Sphere(Vector3d(500, 500, 500), 200, Material(BlinnPhong, Color(1, 0, 0), 1000, 1, 1, 1)));
-    scene.addLightSource(LightSource(Vector3d(400, 400, -500), Color(1, 1, 1)));
+    //scene.addSphere(Sphere(Vector3d(500, 500, 500), 200, Material(BlinnPhong, Color(1, 0, 0), 1000, 1, 0, 1)));
+    //scene.addSphere(Sphere(Vector3d(700, 800, 600), 300, Material(BlinnPhong, Color(0, 0, 1), 1000, 1, 1, 1)));
+    //scene.addLightSource(LightSource(Vector3d(700, 600, -500), Color(1, 1, 1)));
 
 
 

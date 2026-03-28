@@ -18,7 +18,12 @@ private:
     double kd;
 
 public:
-    Material(MaterialType type, Color albedo) : type(type), albedo(albedo) {}
+    Material(MaterialType type, Color albedo) : type(type), albedo(albedo) {
+        this->shininess = 0;
+        this->ks = 1;
+        this->ka = 1;
+        this->kd = 1;
+    }
     Material(MaterialType type, Color albedo, double shininess, double ks, double ka, double kd) : type(type), albedo(albedo), shininess(shininess), ks(ks), ka(ka), kd(kd) {}
 
     MaterialType getType() const {

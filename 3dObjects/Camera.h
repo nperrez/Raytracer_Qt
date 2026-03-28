@@ -19,6 +19,7 @@ private:
 public:
     Camera(Vector3d position, Vector3d lookAt, double fov, int width, int height);
 
+    Vector3d getPosition() const;
     Vector3d getForward() const;
     Vector3d getRight() const;
     Vector3d getUp() const;

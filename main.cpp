@@ -19,17 +19,35 @@ constexpr int height = 1200;
 QColor BACKGROUND_COLOR = Qt::black;
 Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
 
-Color shadeBlinnPhong(Scene scene, Hit hit, LightSource lightSource) {
-    Vector3d normal = hit.getNormal();
-    Vector3d lightDirection = lightSource.getPosition() - hit.getPosition();
-    Vector3d viewDirection = scene.getCamera().getForward();
-    Vector3d h = (lightDirection + viewDirection).normalize() / (lightDirection + viewDirection).getLength();
-    //auto material = std::dynamic_pointer_cast<BlinnPhong>(hit.getMaterial());
+Color colorBlinnPhong(const Scene &scene, Hit hit, LightSource lightSource) {
+    const Vector3d n = hit.getNormal().normalize();
+    const Vector3d l = (lightSource.getPosition() - hit.getPosition()).normalize();
+    const Vector3d v = (scene.getCamera().getPosition() - hit.getPosition()).normalize();
+    const Vector3d h = (l + v).normalize();
 
+    const Color specular = lightSource.getColor() * hit.getMaterial().getKs() * pow(
+                         std::max(0.0, n * h), hit.getMaterial().getShininess());
+    const Color diffuse = lightSource.getColor() * hit.getColor() * hit.getMaterial().getKd() * std::max(
+                        0.0, n * l);
+
+    return AMBIENT_COLOR * hit.getMaterial().getKa() + diffuse + specular;
+}
+
+Color colorPhong(const Scene &scene, Hit hit, LightSource lightSource) {
+    const Vector3d dirRay = hit.getPosition() - scene.getCamera().getPosition();
+    const Vector3d r = dirRay - hit.getNormal().normalize() * 2 * (dirRay * hit.getNormal().normalize());
+    const Vector3d l = lightSource.getPosition() - hit.getPosition();
+
+    const Color specular = lightSource.getColor() * hit.getMaterial().getKs() * std::max(
+                         0.0, pow(r.normalize() * l.normalize(), hit.getMaterial().getShininess()));
+    const Color diffuse = lightSource.getColor() * hit.getColor() * hit.getMaterial().getKd() * std::max(
+                        0.0, hit.getNormal().normalize() * l.normalize());
+
+    return hit.getColor() * hit.getMaterial().getKa() + diffuse + specular;
 }
 
 Color computeColor(Hit hit, const Scene& scene) {
-    auto addColor = Color(0, 0, 0);
+    auto color = Color(0, 0, 0);
     for (auto &lightsource: scene.getLightSources()) {
         Vector3d s = (lightsource.getPosition()-hit.getPosition())/(lightsource.getPosition()-hit.getPosition()).getLength();
         if (s*hit.getNormal() >= 0) {
@@ -50,11 +68,23 @@ Color computeColor(Hit hit, const Scene& scene) {
                 }
             }
             if (!blocked) {
-                addColor = addColor + lightsource.getColor() * (s*hit.getNormal());
+                switch (hit.getMaterial().getType()) {
+                    case Lambert:
+                        color = color + hit.getColor() * (lightsource.getColor() * (s*hit.getNormal())) + hit.getColor() * AMBIENT_COLOR;
+                        break;
+                    case BlinnPhong:
+                        color = color + colorBlinnPhong(scene, hit, lightsource);
+                        break;
+                    case Phong:
+                        color = color + colorPhong(scene, hit, lightsource);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
-    return addColor;
+    return color;
 }
 
 void calculateTriangles(const Scene &scene, const Ray &ray, double &lambda, Color &color) {
@@ -62,8 +92,7 @@ void calculateTriangles(const Scene &scene, const Ray &ray, double &lambda, Colo
         Hit hit = triangle.intersect(ray);
         if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
             lambda = hit.getLambda();
-            Color addColor = computeColor(hit, scene);
-            color = hit.getColor() * addColor + hit.getColor() * AMBIENT_COLOR;
+            color = computeColor(hit, scene);
         }
     }
 }
@@ -73,8 +102,7 @@ void calculateSpheres(const Scene &scene, const Ray &ray, double &lambda, Color 
         Hit hit = sphere.intersect(ray);
         if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
             lambda = hit.getLambda();
-            Color addColor = computeColor(hit, scene);
-            color = hit.getColor() * addColor + hit.getColor() * AMBIENT_COLOR;
+            color = computeColor(hit, scene);
         }
     }
 }
@@ -94,12 +122,13 @@ void castRay(QImage &image, const Scene &scene, const Ray &ray, int x, int y) {
 int main(int argc, char *argv[]) {
 
     //Scene setup
-    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(300, 300, 200), 2, width, height);
+    const auto camera = Camera(Vector3d(500, 500, -300), Vector3d(500, 500, 0), 1.6, width, height);
     auto scene =  Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Add Spheres
-    scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Material(Lambert, Color(1.0, 0.2, 0.2))));     // Red sphere (center)
-    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(Lambert, Color(0.2, 1.0, 0.2))));     // Green sphere (left)
+    /*scene.addSphere(Sphere(Vector3d(300, 300, 300), 80, Material(Lambert, Color(1.0, 0.2, 0.2))));     // Red sphere (center)
+    scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(BlinnPhong, Color(0, 1, 0), 3, 1, 1, 1)));
+    //scene.addSphere(Sphere(Vector3d(150, 200, 250), 60, Material(Lambert, Color(0, 1, 0)))); // Green sphere (left)
     scene.addSphere(Sphere(Vector3d(450, 250, 280), 50, Material(Lambert, Color(0.2, 0.2, 1.0))));     // Blue sphere (right)
     scene.addSphere(Sphere(Vector3d(300, 450, 320), 45, Material(Lambert, Color(1.0, 1.0, 0.2))));     // Yellow sphere (top)
 
@@ -112,12 +141,12 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 400), Vector3d(600, 0, 0), Material(Lambert, Color(0.7, 0.7, 0.7))));
     scene.addTriangle(Triangle(Vector3d(0, 0, 400), Vector3d(600, 0, 0), Vector3d(0, 0, 0), Material(Lambert, Color(0.7, 0.7, 0.7))));
 
-    // Colored triangle for visual interest (magenta)
-    scene.addTriangle(Triangle(Vector3d(200, 150, 350), Vector3d(350, 100, 380), Vector3d(280, 250, 360), Material(Lambert, Color(1.0, 0.4, 0.8))));
-
     // Add Light Sources
     scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)
-    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(1, 1, 1.0)));    // Blue-tinted light (right)
+    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(1, 1, 1.0)));    // Blue-tinted light (right)*/
+
+    scene.addSphere(Sphere(Vector3d(500, 500, 500), 200, Material(BlinnPhong, Color(1, 0, 0), 1000, 1, 1, 1)));
+    scene.addLightSource(LightSource(Vector3d(400, 400, -500), Color(1, 1, 1)));
 
 
 

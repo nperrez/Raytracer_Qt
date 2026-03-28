@@ -16,6 +16,12 @@ Color::Color(QColor color) {
     this->b = color.blue();
 }
 
+Color::Color() {
+    this->r = 0;
+    this->g = 0;
+    this->b = 0;
+}
+
 double Color::getR() const {
     return r;
 }
@@ -43,11 +49,14 @@ Color Color::operator*(double value) const {
 Color Color::operator+(Color color) const {
     if (r + color.r <= 1 && g + color.g <= 1 && b + color.b <= 1) {
         return Color(r + color.r, g + color.g, b + color.b);
-    } else if (r + color.r > 1) {
+    }
+    if (r + color.r > 1) {
         return Color(1, g + color.g, b + color.b);
-    } else if (g + color.g > 1) {
+    }
+    if (g + color.g > 1) {
         return Color(r + color.r, 1, b + color.b);
-    } else if (b + color.b > 1) {
+    }
+    if (b + color.b > 1) {
         return Color(r + color.r, g + color.g, 1);
     }
 }

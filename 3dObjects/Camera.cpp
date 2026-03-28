@@ -9,12 +9,16 @@
 Camera::Camera(Vector3d position, Vector3d lookAt, double fov, int width, int height) : width(width), height(height) {
     this->position = position;
     this->fov = fov;
-    aspectRatio = width/height;
+    aspectRatio = static_cast<double>(width) / static_cast<double>(height);
     forward = (lookAt - position).normalize();
     right = (Vector3d(0, 1, 0)/forward).normalize();
     up = (right/forward).normalize();
     halfHeight = tan(fov*0.5);
     halfWidth = halfHeight * aspectRatio;
+}
+
+Vector3d Camera::getPosition() const {
+    return position;
 }
 
 Vector3d Camera::getForward() const {

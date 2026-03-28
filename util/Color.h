@@ -16,6 +16,7 @@ private:
 public:
     Color(double r, double g, double b);
     Color(QColor color);
+    Color();
 
     double getR() const;
     double getG() const;

@@ -17,6 +17,16 @@
 constexpr int width = 1920;
 constexpr int height = 1200;
 QColor BACKGROUND_COLOR = Qt::black;
+Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
+
+Color shadeBlinnPhong(Scene scene, Hit hit, LightSource lightSource) {
+    Vector3d normal = hit.getNormal();
+    Vector3d lightDirection = lightSource.getPosition() - hit.getPosition();
+    Vector3d viewDirection = scene.getCamera().getForward();
+    Vector3d h = (lightDirection + viewDirection).normalize() / (lightDirection + viewDirection).getLength();
+    auto material = std::dynamic_pointer_cast<BlinnPhong>(hit.getMaterial());
+
+}
 
 Color computeColor(Hit hit, const Scene& scene) {
     auto addColor = Color(0, 0, 0);
@@ -53,7 +63,7 @@ void calculateTriangles(const Scene &scene, const Ray &ray, double &lambda, Colo
         if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
             lambda = hit.getLambda();
             Color addColor = computeColor(hit, scene);
-            color = hit.getColor() * addColor + hit.getColor() * 0.1;
+            color = hit.getColor() * addColor + hit.getColor() * AMBIENT_COLOR;
         }
     }
 }
@@ -64,7 +74,7 @@ void calculateSpheres(const Scene &scene, const Ray &ray, double &lambda, Color 
         if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
             lambda = hit.getLambda();
             Color addColor = computeColor(hit, scene);
-            color = hit.getColor() * addColor + hit.getColor() * 0.1;
+            color = hit.getColor() * addColor + hit.getColor() * AMBIENT_COLOR;
         }
     }
 }
@@ -107,7 +117,7 @@ int main(int argc, char *argv[]) {
 
     // Add Light Sources
     scene.addLightSource(LightSource(Vector3d(200, 400, 100), Color(1.0, 1.0, 1.0)));   // Main white light (top left)
-    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(0.8, 0.8, 1.0)));    // Blue-tinted light (right)
+    scene.addLightSource(LightSource(Vector3d(500, 300, 50), Color(1, 1, 1.0)));    // Blue-tinted light (right)
 
 
 

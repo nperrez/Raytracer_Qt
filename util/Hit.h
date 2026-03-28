@@ -17,14 +17,14 @@ private:
     double v;
     Vector3d position;
     Vector3d normal;
-    Material material;
+    std::shared_ptr<Material> material;
 
 public:
     Hit(double lambda, Vector3d position, Vector3d normal, Material material);
     double getLambda();
     Vector3d getPosition();
     Vector3d getNormal();
-    Material getMaterial();
+    std::shared_ptr<Material> getMaterial();
     Color getColor();
     void setU(double u);
     void setV(double v);

@@ -4,7 +4,7 @@
 
 #include "Hit.h"
 
-Hit::Hit(double lambda, Vector3d position, Vector3d normal, Material material) : material(material), lambda(lambda), position(position), normal(normal) {}
+Hit::Hit(double lambda, Vector3d position, Vector3d normal, Material material) : material(&material), lambda(lambda), position(position), normal(normal) {}
 
 double Hit::getLambda() {
     return lambda;
@@ -18,12 +18,12 @@ Vector3d Hit::getNormal() {
     return normal;
 }
 
-Material Hit::getMaterial() {
+std::shared_ptr<Material> Hit::getMaterial() {
     return material;
 }
 
 Color Hit::getColor() {
-    return material.getAlbedo();
+    return material->getAlbedo();
 }
 
 void Hit::setU(const double u) {

@@ -13,6 +13,7 @@ private:
 
 public:
     Material(Color albedo) : albedo(albedo) {}
+    virtual ~Material() = default;
 
     Color getAlbedo() const {
         return albedo;

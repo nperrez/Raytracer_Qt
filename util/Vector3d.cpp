@@ -26,7 +26,7 @@ double Vector3d::getLength() const {
     return sqrt(x*x + y*y + z*z);
 }
 
-Vector3d Vector3d::normalize() {
+Vector3d Vector3d::normalize() const {
     return *this / getLength();
 }
 

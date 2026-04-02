@@ -4,6 +4,7 @@
 #include <QImage>
 #include <queue>
 #include <execution>
+#include <iostream>
 #include <random>
 
 #include "3dObjects/Sphere.h"
@@ -124,7 +125,7 @@ int main(int argc, char *argv[]) {
     // Camera 1/8 into the room from the front, centered, FOV sized so the back wall fills the frame exactly.
     // Y=0 is ceiling (top of frame), Y=1000 is floor (bottom of frame) — matches the camera's up=(0,-1,0) convention.
     // FOV = 2*atan(500/875) so that at Z=1000 the view spans exactly X=[0,1600] and Y=[0,1000].
-    const auto camera = Camera(Vector3d(800, 500, 125), Vector3d(800, 500, 500), 1.8383, width, height);
+    const auto camera = Camera(Vector3d(800, 500, 50), Vector3d(800, 500, 500), 1.8383, width, height);
     auto scene = Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Wall materials: specularFact=0, reflectionFact=0 (default in this constructor)
@@ -141,6 +142,9 @@ int main(int argc, char *argv[]) {
     // Back wall (white, Z=1000, normal -Z)
     scene.addTriangle(Vector3d(0,0,1000),    Vector3d(0,1000,1000),    Vector3d(1600,0,1000),    wallWhite);
     scene.addTriangle(Vector3d(1600,0,1000), Vector3d(0,1000,1000),    Vector3d(1600,1000,1000), wallWhite);
+    // Front Wall
+    scene.addTriangle( Vector3d(0,1000,0),   Vector3d(0,0,0),    Vector3d(1600,0,0),    wallWhite);
+    scene.addTriangle(Vector3d(0,1000,0),  Vector3d(1600,0,0),   Vector3d(1600,1000,0), wallWhite);
     // Ceiling (white, Y=0, normal +Y)
     scene.addTriangle(Vector3d(0,0,0),    Vector3d(0,0,1000),    Vector3d(1600,0,0),    wallWhite);
     scene.addTriangle(Vector3d(1600,0,0), Vector3d(0,0,1000),    Vector3d(1600,0,1000), wallWhite);
@@ -152,7 +156,7 @@ int main(int argc, char *argv[]) {
     scene.addLightSource(LightSource(Vector3d(600, 100, 500), Color(0.8, 0.8, 0.8)));
     scene.addLightSource(LightSource(Vector3d(1000, 100, 500), Color(0.8, 0.8, 0.8)));
 
-    scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.8, 0.7, 0.1), 0.1));
+    scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.8, 0.7, 0.1), 0));
     //scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.5, 0.4, 0.1), Color(0.5, 0.4, 0.1), 50, 0.1, 0.2, 0, 0, 0.8));
     //scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.8, 0, 0.4), 100, 1, 0.1, 0.8));
 

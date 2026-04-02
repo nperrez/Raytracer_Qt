@@ -29,7 +29,7 @@ private:
 public:
     Scene(int width, int height, Camera camera, Color BACKGROUND_COLOR);
     void addSphere(const Vector3d &center, double radius, const Material &material);
-    void addTriangle(Triangle triangle);
+    void addTriangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material);
     void addLightSource(LightSource lightSource);
     int getWidth() const;
     int getHeight() const;

@@ -24,20 +24,12 @@ void Scene::addSphere(const Vector3d &center, const double radius, const Materia
     objects.push_back(std::make_unique<Sphere>(center, radius, material));
 }
 
-void Scene::addTriangle(Triangle triangle) {
-    triangles.emplace_back(triangle);
+void Scene::addTriangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material) {
+    objects.push_back(std::make_unique<Triangle>(a, b, c, material));
 }
 
 void Scene::addLightSource(LightSource lightSource) {
     lightsources.emplace_back(lightSource);
-}
-
-std::pmr::vector<Sphere> Scene::getSpheres() const {
-    return spheres;
-}
-
-std::pmr::vector<Triangle> Scene::getTriangles() const {
-    return triangles;
 }
 
 const std::pmr::vector<std::unique_ptr<Object>>& Scene::getObjects() const {

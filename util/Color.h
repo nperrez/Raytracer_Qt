@@ -26,6 +26,7 @@ public:
     Color operator*(Color color) const;
     Color operator*(double value) const;
     Color operator+(Color color) const;
+    bool operator==(Color color) const;
 
 };
 

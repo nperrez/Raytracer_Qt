@@ -4,7 +4,6 @@
 
 #ifndef RAYTRACER_QT_BALL_H
 #define RAYTRACER_QT_BALL_H
-#include "../util/Color.h"
 #include "../util/Hit.h"
 #include "../util/Ray.h"
 #include "../util/Vector3d.h"
@@ -21,11 +20,11 @@ private:
 public:
     Sphere(const Vector3d &center, double radius, const Material &material);
 
-    Vector3d getCenter() const;
-    double getRadius() const;
-    double getDepth() const;
+    [[nodiscard]] Vector3d getCenter() const;
+    [[nodiscard]] double getRadius() const;
+    [[nodiscard]] double getDepth() const;
 
-    Hit intersect(Ray ray) const override;
+    [[nodiscard]] Hit intersect(Ray ray) const override;
 };
 
 

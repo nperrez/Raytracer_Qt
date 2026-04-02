@@ -10,7 +10,7 @@
 #include <../../../util/Material.h>
 #include "Object.h"
 
-class Triangle : Object {
+class Triangle : public Object {
 
 private:
     Vector3d a, b, c, cross, normal;
@@ -23,7 +23,7 @@ public:
     [[nodiscard]] Vector3d getC() const;
     [[nodiscard]] Vector3d getNormal() const;
     [[nodiscard]] double getArea() const;
-    [[nodiscard]] Hit intersect(Ray ray) const;
+    [[nodiscard]] Hit intersect(Ray ray) const override;
 
 };
 

@@ -47,16 +47,13 @@ Color Color::operator*(double value) const {
 }
 
 Color Color::operator+(Color color) const {
-    if (r + color.r <= 1 && g + color.g <= 1 && b + color.b <= 1) {
-        return Color(r + color.r, g + color.g, b + color.b);
-    }
-    if (r + color.r > 1) {
-        return Color(1, g + color.g, b + color.b);
-    }
-    if (g + color.g > 1) {
-        return Color(r + color.r, 1, b + color.b);
-    }
-    if (b + color.b > 1) {
-        return Color(r + color.r, g + color.g, 1);
-    }
+    return Color(
+          std::min(1.0, r + color.r),
+          std::min(1.0, g + color.g),
+          std::min(1.0, b + color.b)
+      );
+}
+
+bool Color::operator==(Color color) const {
+    return r == color.r && g == color.g && b == color.b;
 }

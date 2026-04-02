@@ -6,48 +6,74 @@
 #define RAYTRACER_QT_MATERIAL_H
 #include "Color.h"
 
-enum MaterialType {Lambert, Phong, BlinnPhong};
-
 class Material {
 private:
-    MaterialType type;
     Color albedo;
+    Color specular;
     double shininess;
-    double ks;
-    double ka;
-    double kd;
+    double glossiness;
+    double specularFact;
+    double ambientFact;
+    double diffuseFact;
+    double reflectionFact;
+    double refractionFact;
 
 public:
-    Material(MaterialType type, Color albedo) : type(type), albedo(albedo) {
+    Material(Color albedo) : albedo(albedo) {
         this->shininess = 0;
-        this->ks = 1;
-        this->ka = 1;
-        this->kd = 1;
+        this->specularFact = 1;
+        this->ambientFact = 1;
+        this->diffuseFact = 1;
     }
-    Material(MaterialType type, Color albedo, double shininess, double ks, double ka, double kd) : type(type), albedo(albedo), shininess(shininess), ks(ks), ka(ka), kd(kd) {}
+    Material(Color albedo, double shininess, double ks, double ka, double kd) : albedo(albedo), shininess(shininess), specularFact(ks), ambientFact(ka), diffuseFact(kd) {
+        this->glossiness = 0;
+        this->reflectionFact = 0;
+        this->refractionFact = 0;
+    }
 
-    MaterialType getType() const {
-        return type;
+    Material(Color albedo, Color specular, double shininess, double glossiness, double ks, double ka, double kd, double krl) : albedo(albedo), specular(specular), shininess(shininess), glossiness(glossiness), specularFact(ks), ambientFact(ka), diffuseFact(kd), reflectionFact(krl) {
+        this->refractionFact = 0;
+    }
+
+    Material(Color specular, double glossiness) : specular(specular), glossiness(glossiness) {
+        this->shininess = 0;
+        this->specularFact = 0;
+        this->ambientFact = 0;
+        this->diffuseFact = 0;
+        this->reflectionFact = 1;
+        this->refractionFact = 0;
     }
 
     Color getAlbedo() const {
         return albedo;
     }
 
+    Color getSpecular() const {
+        return specular;
+    }
+
     double getShininess() const {
         return shininess;
     }
 
-    double getKs() const {
-        return ks;
+    double getGlossiness() const {
+        return glossiness;
     }
 
-    double getKa() const {
-        return ka;
+    double getSpecularFact() const {
+        return specularFact;
     }
 
-    double getKd() const {
-        return kd;
+    double getAmbientFact() const {
+        return ambientFact;
+    }
+
+    double getDiffuseFact() const {
+        return diffuseFact;
+    }
+
+    double getReflectionFact() const {
+        return reflectionFact;
     }
 };
 

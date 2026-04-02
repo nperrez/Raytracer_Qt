@@ -6,6 +6,12 @@
 
 Hit::Hit(double lambda, Vector3d position, Vector3d normal, const Material &material) : material(material), lambda(lambda), position(position), normal(normal) {}
 
+Hit::Hit() : material(Material(Color(0, 0, 0))) {
+    lambda = 0;
+    position = Vector3d(0, 0, 0);
+    normal = Vector3d(0, 0, 0);
+}
+
 double Hit::getLambda() {
     return lambda;
 }

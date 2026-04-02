@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-Sphere::Sphere(const Vector3d &center, const double radius, const Material &material) : center(center), radius(radius), material(material) {}
+Sphere::Sphere(const Vector3d &center, const double radius, const Material &material) : Object(material), center(center), radius(radius) {}
 
 Vector3d Sphere::getCenter() const {
     return center;
@@ -14,14 +14,6 @@ Vector3d Sphere::getCenter() const {
 
 double Sphere::getRadius() const {
     return radius;
-}
-
-Material Sphere::getMaterial() const {
-    return material;
-}
-
-Color Sphere::getColor() const {
-    return material.getAlbedo();
 }
 
 double Sphere::getDepth() const {
@@ -35,7 +27,7 @@ Hit Sphere::intersect(Ray ray) const {
     const double c = v*v - radius*radius;
     const double d = b*b - 4*a*c;
     if (d < 0) {
-        return Hit(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Material(Lambert, Color(0, 0, 0)));
+        return Hit(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Material(Color(0, 0, 0)));
     }
 
     double lambda1 = (-b-sqrt(d))/(2*a);

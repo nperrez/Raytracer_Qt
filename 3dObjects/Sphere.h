@@ -9,22 +9,20 @@
 #include "../util/Ray.h"
 #include "../util/Vector3d.h"
 #include <../../../util/Material.h>
+#include "Object.h"
 
 
-class Sphere {
+class Sphere : Object {
 
 private:
     Vector3d center;
     double radius;
-    Material material;
 
 public:
     Sphere(const Vector3d &center, double radius, const Material &material);
 
     Vector3d getCenter() const;
     double getRadius() const;
-    Material getMaterial() const;
-    Color getColor() const;
     double getDepth() const;
 
     Hit intersect(Ray ray) const;

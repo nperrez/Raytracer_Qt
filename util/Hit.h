@@ -21,6 +21,7 @@ private:
 
 public:
     Hit(double lambda, Vector3d position, Vector3d normal, const Material &material);
+    Hit();
     double getLambda();
     Vector3d getPosition();
     Vector3d getNormal();

@@ -4,12 +4,12 @@
 
 #include "Triangle.h"
 
-Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material) : a(a), b(b), c(c), material(material) {
+Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material) : Object(material), a(a), b(b), c(c) {
     cross = (b-a)/(c-a);
     normal = cross/cross.getLength();
 }
 
-Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c) : a(a), b(b), c(c), material(Lambert, Color(0, 0, 0)) {
+Triangle::Triangle(const Vector3d &a, const Vector3d &b, const Vector3d &c) : Object(Material(Color(0, 0, 0))), a(a), b(b), c(c) {
     cross = (b-a)/(c-a);
     normal = cross/cross.getLength();
 }
@@ -28,14 +28,6 @@ Vector3d Triangle::getC() const {
 
 Vector3d Triangle::getNormal() const {
     return normal;
-}
-
-Material Triangle::getMaterial() const {
-    return material;
-}
-
-Color Triangle::getColor() const {
-    return material.getAlbedo();
 }
 
 double Triangle::getArea() const {

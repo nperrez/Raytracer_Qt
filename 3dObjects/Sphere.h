@@ -12,7 +12,7 @@
 #include "Object.h"
 
 
-class Sphere : Object {
+class Sphere : public Object {
 
 private:
     Vector3d center;
@@ -25,7 +25,7 @@ public:
     double getRadius() const;
     double getDepth() const;
 
-    Hit intersect(Ray ray) const;
+    Hit intersect(Ray ray) const override;
 };
 
 

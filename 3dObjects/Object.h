@@ -10,13 +10,15 @@ private:
     Material material;
 
 public:
-    Object(Material material) : material(material) {}
+    Object(const Material &material) : material(material) {}
+    virtual ~Object() = default;
     Material getMaterial() const {
         return material;
     }
     Color getColor() const {
         return material.getAlbedo();
     }
+    virtual Hit intersect(Ray ray) const = 0;
 };
 
 

@@ -15,7 +15,7 @@ Vector3d Ray::getLocation() {
     return this->location;
 }
 
-Vector3d Ray::getDirection() {
+const Vector3d Ray::getDirection() {
     return this->direction;
 }
 

@@ -6,6 +6,8 @@
 #define RAYTRACER_QT_SCENE_H
 #include <format>
 #include <vector>
+#include <memory>
+#include <memory_resource>
 #include <../../../3dObjects/Sphere.h>
 #include <../../../3dObjects/Triangle.h>
 #include <../../../3dObjects/Camera.h>
@@ -17,14 +19,16 @@ class Scene {
 private:
     std::pmr::vector<Sphere> spheres;
     std::pmr::vector<Triangle> triangles;
+    std::pmr::vector<std::unique_ptr<Object>> objects;
     std::pmr::vector<LightSource> lightsources;
+
     Camera camera;
     int width, height;
     Color BACKGROUND_COLOR;
 
 public:
     Scene(int width, int height, Camera camera, Color BACKGROUND_COLOR);
-    void addSphere(Sphere sphere);
+    void addSphere(const Vector3d &center, double radius, const Material &material);
     void addTriangle(Triangle triangle);
     void addLightSource(LightSource lightSource);
     int getWidth() const;
@@ -32,6 +36,7 @@ public:
     Color getBackgroundColor() const;
     std::pmr::vector<Sphere> getSpheres() const;
     std::pmr::vector<Triangle> getTriangles() const;
+    const std::pmr::vector<std::unique_ptr<Object>>& getObjects() const;
     std::pmr::vector<LightSource> getLightSources() const;
     Camera getCamera() const;
 

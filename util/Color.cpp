@@ -34,7 +34,7 @@ double Color::getB() const {
     return b;
 }
 
-QColor Color::getColor() const {
+QColor Color::getQColor() const {
     return QColor().fromRgbF(r, g, b);
 }
 

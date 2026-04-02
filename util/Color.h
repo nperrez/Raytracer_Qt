@@ -21,7 +21,7 @@ public:
     double getR() const;
     double getG() const;
     double getB() const;
-    QColor getColor() const;
+    QColor getQColor() const;
 
     Color operator*(Color color) const;
     Color operator*(double value) const;

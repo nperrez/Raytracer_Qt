@@ -99,6 +99,10 @@ public:
     double getRefractiveIndex() const {
         return refractiveIndex;
     }
+
+    Color getAbsorption() const {
+        return absorption;
+    }
 };
 
 #endif //RAYTRACER_QT_MATERIAL_H

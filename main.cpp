@@ -113,7 +113,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
                 reflective = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getSpecular();
             }
         } else {
-            const int iterations = 128;
+            const int iterations = 64;
             double glossyR = 0;
             double glossyG = 0;
             double glossyB = 0;
@@ -156,13 +156,18 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
         if (refractedDir) {
             Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
             refractedColor = traceRay(refractedRay, scene, depth - 1);
-            //std::cout << refractedColor.getR() <<"  "<< refractedColor.getG() << "  " << refractedColor.getB() << std::endl;
         } else {
             return reflectedColor;
         }
 
         double cosA = std::clamp(-(i * n), 0.0, 1.0);
         double f = fresnel(cosA, eta1, eta2);
+        if (!hit.isFrontFace()) {
+            double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
+            double g = exp(hit.getMaterial().getAbsorption().getG() * hit.getLambda() * -1);
+            double b = exp(hit.getMaterial().getAbsorption().getB() * hit.getLambda() * -1);
+            refractedColor = refractedColor * Color(r, g, b);
+        }
         return reflectedColor * f + refractedColor * (1 - f);
 
     }
@@ -208,8 +213,8 @@ int main(int argc, char *argv[]) {
     scene.addLightSource(LightSource(Vector3d(1000, 100, 500), Color(0.8, 0.8, 0.8)));
     scene.addLightSource(LightSource(Vector3d(800, 600, 70), Color(0.3, 0.3, 0.3)));
 
-    scene.addSphere(Vector3d(1300, 750, 600), 150, Material(Color(0.1, 0.7, 0.8), 0.1));
-    scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, Color(0, 0, 0)));
+    scene.addSphere(Vector3d(1300, 750, 600), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
+    scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, Color(0.0005, 0.0005, 0.005)));
     scene.addSphere(Vector3d(900, 450, 450), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
     scene.addSphere(Vector3d(500, 900, 850), 100, Material(Color(0.9, 0, 0.5), 0));
     scene.addSphere(Vector3d(800, 470, 100), 15, Material(1.06, Color(0, 0, 0)));

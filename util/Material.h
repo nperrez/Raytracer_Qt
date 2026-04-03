@@ -6,17 +6,20 @@
 #define RAYTRACER_QT_MATERIAL_H
 #include "Color.h"
 
+enum MaterialType {DIFFUSE, SPECULAR, METAL, DIELECTRIC};
+
 class Material {
 private:
+    MaterialType type;
     Color albedo;
     Color specular;
+    Color absorption;
     double shininess;
     double glossiness;
     double specularFact;
     double ambientFact;
     double diffuseFact;
-    double reflectionFact;
-    double refractionFact;
+    double refractiveIndex;
 
 public:
     Material(Color albedo) : albedo(albedo) {
@@ -24,24 +27,45 @@ public:
         this->specularFact = 1;
         this->ambientFact = 1;
         this->diffuseFact = 1;
-    }
-    Material(Color albedo, double shininess, double ks, double ka, double kd) : albedo(albedo), shininess(shininess), specularFact(ks), ambientFact(ka), diffuseFact(kd) {
+        this->type = DIFFUSE;
+        this->refractiveIndex = 0;
         this->glossiness = 0;
-        this->reflectionFact = 0;
-        this->refractionFact = 0;
     }
 
-    Material(Color albedo, Color specular, double shininess, double glossiness, double ks, double ka, double kd, double krl) : albedo(albedo), specular(specular), shininess(shininess), glossiness(glossiness), specularFact(ks), ambientFact(ka), diffuseFact(kd), reflectionFact(krl) {
-        this->refractionFact = 0;
+    Material(Color albedo, double ka, double kd) :albedo(albedo), ambientFact(ka), diffuseFact(kd) {
+        this->type = DIFFUSE;
+        this->shininess = 0;
+        this->specularFact = 0;
+        this->glossiness = 0;
+        this->refractiveIndex = 0;
+    }
+
+    Material(Color albedo, double shininess, double ks, double ka, double kd) : albedo(albedo), shininess(shininess), specularFact(ks), ambientFact(ka), diffuseFact(kd) {
+        this->type = SPECULAR;
+        this->glossiness = 0;
+        this->refractiveIndex = 0;
     }
 
     Material(Color specular, double glossiness) : specular(specular), glossiness(glossiness) {
+        this->type = METAL;
         this->shininess = 0;
         this->specularFact = 0;
         this->ambientFact = 0;
         this->diffuseFact = 0;
-        this->reflectionFact = 1;
-        this->refractionFact = 0;
+        this->refractiveIndex = 0;
+    }
+
+    Material(double refractiveIndex, Color absorption) : absorption(absorption), refractiveIndex(refractiveIndex) {
+        this->type = DIELECTRIC;
+        this->shininess = 0;
+        this->specularFact = 0;
+        this->ambientFact = 0;
+        this->diffuseFact = 0;
+        this->glossiness = 0;
+    }
+
+    MaterialType getType() const {
+        return type;
     }
 
     Color getAlbedo() const {
@@ -72,8 +96,8 @@ public:
         return diffuseFact;
     }
 
-    double getReflectionFact() const {
-        return reflectionFact;
+    double getRefractiveIndex() const {
+        return refractiveIndex;
     }
 };
 

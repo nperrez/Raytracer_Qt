@@ -50,6 +50,24 @@ Hit castRay(const Ray &ray, const Scene &scene) {
     return closestHit;
 }
 
+std::optional<Vector3d> refract(Vector3d i, Vector3d n, double eta1, double eta2) {
+    double eta = eta1/eta2;
+    double cosTheta1 = -(i * n);
+
+    double k = 1 - eta * eta * (1 - cosTheta1 * cosTheta1);
+
+    if (k < 0) {
+        return {};
+    }
+    Vector3d r = i * eta + n * (eta * cosTheta1 - sqrt(k));
+    return r;
+}
+
+double fresnel(double cosA, double eta1, double eta2) {
+    double f0 = pow((eta1 - eta2) / (eta1 + eta2), 2);
+    return f0 + (1 - f0) * pow(1 - cosA, 5);
+}
+
 Color traceRay(Ray initialRay, const Scene &scene, int depth) {
     Color color(BACKGROUND_COLOR);
     if (depth <= 0) return color;
@@ -71,6 +89,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
             bool blocked = false;
             const auto ray = Ray(hit.getPosition() + s * 10e-6, s);
             for (auto &object: scene.getObjects()) {
+                if (object->getMaterial().getType() == DIELECTRIC) continue;
                 if (Hit hit2 = object->intersect(ray); hit2.getLambda() >= 0 && (lightSource.getPosition() - hit.getPosition()).getLength() > (hit2.getPosition() - hit.getPosition()).getLength()) {
                     blocked = true;
                     break;
@@ -79,22 +98,22 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
             if (!blocked) {
                 diffuse = diffuse + lightSource.getColor() * hit.getColor() * hit.getMaterial().getDiffuseFact() * std::max(0.0, n * l);
 
-                if (hit.getMaterial().getSpecularFact() > 0) {
+                if (hit.getMaterial().getType() == SPECULAR) {
                     const Vector3d h = (l + v).normalize();
                     specular = specular + lightSource.getColor() * hit.getMaterial().getSpecularFact() * pow(std::max(0.0, n * h), hit.getMaterial().getShininess());
                 }
             }
         }
     }
-    if (hit.getMaterial().getReflectionFact() > 0) {
+    if (hit.getMaterial().getType() == METAL) {
         if (hit.getMaterial().getGlossiness() == 0) {
             Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * 1e-6, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
             Hit reflectedHit = castRay(nextRay, scene);
             if (reflectedHit.getLambda() >= 0) {
-                reflective = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getReflectionFact() * hit.getMaterial().getSpecular();
+                reflective = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getSpecular();
             }
         } else {
-            const int iterations = 64;
+            const int iterations = 128;
             double glossyR = 0;
             double glossyG = 0;
             double glossyB = 0;
@@ -106,14 +125,46 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
                 Ray nextRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
                 Hit reflectedHit = castRay(nextRay, scene);
                 if (reflectedHit.getLambda() >= 0) {
-                    Color reflectiveGlossy = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getReflectionFact() * hit.getMaterial().getSpecular();
+                    Color reflectiveGlossy = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getSpecular();
                     glossyR = glossyR + reflectiveGlossy.getR();
                     glossyG = glossyG + reflectiveGlossy.getG();
                     glossyB = glossyB + reflectiveGlossy.getB();
                 }
             }
-            reflective = Color(glossyR/iterations, glossyG/iterations, glossyB/iterations) * hit.getMaterial().getReflectionFact() * hit.getMaterial().getSpecular();
+            reflective = Color(glossyR/iterations, glossyG/iterations, glossyB/iterations) * hit.getMaterial().getSpecular();
         }
+    }
+    if (hit.getMaterial().getType() == DIELECTRIC) {
+        Color refractedColor;
+        Vector3d n = hit.getNormal().normalize();
+        Vector3d i = initialRay.getDirection().normalize();
+        double eta1;
+        double eta2;
+        if (hit.isFrontFace()) {
+            eta1 = 1;
+            eta2 = hit.getMaterial().getRefractiveIndex();
+        } else {
+            eta1 = hit.getMaterial().getRefractiveIndex();
+            eta2 = 1;
+        }
+        Vector3d reflectedDir = reflect(i, n);
+        Ray reflectedRay = Ray(hit.getPosition() + n * 1e-6, reflectedDir);
+        Color reflectedColor = traceRay(reflectedRay, scene, depth -1);
+
+        std::optional<Vector3d> refractedDir = refract(i, n, eta1, eta2);
+
+        if (refractedDir) {
+            Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
+            refractedColor = traceRay(refractedRay, scene, depth - 1);
+            //std::cout << refractedColor.getR() <<"  "<< refractedColor.getG() << "  " << refractedColor.getB() << std::endl;
+        } else {
+            return reflectedColor;
+        }
+
+        double cosA = std::clamp(-(i * n), 0.0, 1.0);
+        double f = fresnel(cosA, eta1, eta2);
+        return reflectedColor * f + refractedColor * (1 - f);
+
     }
     return AMBIENT_COLOR * hit.getMaterial().getAmbientFact() + diffuse + specular + reflective;
 }
@@ -131,7 +182,7 @@ int main(int argc, char *argv[]) {
     // Wall materials: specularFact=0, reflectionFact=0 (default in this constructor)
     Material wallBlue  = Material(Color(0.1, 0.1, 0.8), 0, 0.0, 0.2, 1.0);
     Material wallRed   = Material(Color(0.8, 0.1, 0.1), 0, 0.0, 0.2, 1.0);
-    Material wallWhite = Material(Color(1, 1, 1), 0, 0.0, 0.2, 1.0);
+    Material wallWhite = Material(Color(0.9, 0.9, 0.9), 0, 0.0, 0.2, 1.0);
 
     // Left wall (blue, X=0, normal +X)
     scene.addTriangle(Vector3d(0,0,0),    Vector3d(0,1000,0),    Vector3d(0,0,1000),    wallBlue);
@@ -155,10 +206,13 @@ int main(int argc, char *argv[]) {
     //scene.addLightSource(LightSource(Vector3d(800, 100, 500), Color(1, 1, 1)));
     scene.addLightSource(LightSource(Vector3d(600, 100, 500), Color(0.8, 0.8, 0.8)));
     scene.addLightSource(LightSource(Vector3d(1000, 100, 500), Color(0.8, 0.8, 0.8)));
+    scene.addLightSource(LightSource(Vector3d(800, 600, 70), Color(0.3, 0.3, 0.3)));
 
-    scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.8, 0.7, 0.1), 0));
-    //scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.5, 0.4, 0.1), Color(0.5, 0.4, 0.1), 50, 0.1, 0.2, 0, 0, 0.8));
-    //scene.addSphere(Vector3d(800, 600, 600), 200, Material(Color(0.8, 0, 0.4), 100, 1, 0.1, 0.8));
+    scene.addSphere(Vector3d(1300, 750, 600), 150, Material(Color(0.1, 0.7, 0.8), 0.1));
+    scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, Color(0, 0, 0)));
+    scene.addSphere(Vector3d(900, 450, 450), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
+    scene.addSphere(Vector3d(500, 900, 850), 100, Material(Color(0.9, 0, 0.5), 0));
+    scene.addSphere(Vector3d(800, 470, 100), 15, Material(1.06, Color(0, 0, 0)));
 
     //Window Management
     QApplication a(argc, argv);

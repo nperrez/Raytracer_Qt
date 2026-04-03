@@ -18,6 +18,7 @@ private:
     Vector3d position;
     Vector3d normal;
     Material material;
+    bool frontFace;
 
 public:
     Hit(double lambda, Vector3d position, Vector3d normal, const Material &material);
@@ -31,6 +32,8 @@ public:
     void setV(double v);
     double getU();
     double getV();
+    void setFrontFace(const Vector3d& rayDirection, const Vector3d& outwardNormal);
+    bool isFrontFace() const;
 };
 
 

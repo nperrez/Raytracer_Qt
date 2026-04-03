@@ -38,6 +38,7 @@ Hit Triangle::intersect(Ray ray) const {
     double lambda = ((a-ray.getLocation())*normal)/(ray.getDirection()*normal);
     if (lambda > 0) {
         auto hit = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial());
+        hit.setFrontFace(ray.getDirection(), normal);
         auto pbc = Triangle(hit.getPosition(), b, c);
         auto pca = Triangle(hit.getPosition(), c, a);
         auto pab = Triangle(hit.getPosition(), a, b);
@@ -45,9 +46,15 @@ Hit Triangle::intersect(Ray ray) const {
         double lambdaB = pca.getArea()/this->getArea();
         double lambdaC = pab.getArea()/this->getArea();
         if (lambdaA >= 0 && lambdaB >= 0 && lambdaC >= 0 && std::abs(lambdaA + lambdaB + lambdaC - 1.0) < 1e-6) {
-            return {lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
+            Hit hit2 = Hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial());
+            hit2.setFrontFace(ray.getDirection(), normal);
+            return hit2;
         }
-        return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
+        Hit hit2 = Hit(-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial());
+        hit2.setFrontFace(ray.getDirection(), normal);
+        return hit2;
     }
-    return {-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial()};
+    Hit hit2 = Hit(-1, ray.getLocation() + ray.getDirection() * lambda, normal, this->getMaterial());
+    hit2.setFrontFace(ray.getDirection(), normal);
+    return hit2;
 }

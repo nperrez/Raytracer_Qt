@@ -4,7 +4,9 @@
 
 #include "Hit.h"
 
-Hit::Hit(double lambda, Vector3d position, Vector3d normal, const Material &material) : material(material), lambda(lambda), position(position), normal(normal) {}
+Hit::Hit(double lambda, Vector3d position, Vector3d normal, const Material &material) : material(material), lambda(lambda), position(position), normal(normal) {
+    frontFace = true;
+}
 
 Hit::Hit() : material(Material(Color(0, 0, 0))) {
     lambda = 0;
@@ -46,4 +48,13 @@ double Hit::getU() {
 
 double Hit::getV() {
     return v;
+}
+
+void Hit::setFrontFace(const Vector3d& rayDirection, const Vector3d& outwardNormal) {
+    frontFace = rayDirection * outwardNormal < 0;
+    normal = frontFace ? outwardNormal : outwardNormal * -1;
+}
+
+bool Hit::isFrontFace() const {
+    return frontFace;
 }

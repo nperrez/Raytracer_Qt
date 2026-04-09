@@ -44,6 +44,8 @@ add_executable(Raytracer_Qt main.cpp
         3dObjects/Camera.h
         util/Material.h
         3dObjects/Object.h
+        3dObjects/Mesh.cpp
+        3dObjects/Mesh.h
 )
 target_link_libraries(Raytracer_Qt
         PRIVATE TBB::tbb

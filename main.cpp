@@ -68,7 +68,7 @@ double fresnel(double cosA, double eta1, double eta2) {
     return f0 + (1 - f0) * pow(1 - cosA, 5);
 }
 
-Color traceRay(Ray initialRay, const Scene &scene, int depth) {
+Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
     Color color(BACKGROUND_COLOR);
     if (depth <= 0) return color;
 
@@ -110,10 +110,10 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
             Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * 1e-6, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
             Hit reflectedHit = castRay(nextRay, scene);
             if (reflectedHit.getLambda() >= 0) {
-                reflective = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getSpecular();
+                reflective = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
             }
         } else {
-            const int iterations = 64;
+            const int iterations = 1;
             double glossyR = 0;
             double glossyG = 0;
             double glossyB = 0;
@@ -125,7 +125,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
                 Ray nextRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
                 Hit reflectedHit = castRay(nextRay, scene);
                 if (reflectedHit.getLambda() >= 0) {
-                    Color reflectiveGlossy = traceRay(nextRay, scene, depth -1) * hit.getMaterial().getSpecular();
+                    Color reflectiveGlossy = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
                     glossyR = glossyR + reflectiveGlossy.getR();
                     glossyG = glossyG + reflectiveGlossy.getG();
                     glossyB = glossyB + reflectiveGlossy.getB();
@@ -141,21 +141,21 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth) {
         double eta1;
         double eta2;
         if (hit.isFrontFace()) {
-            eta1 = 1;
+            eta1 = eta;
             eta2 = hit.getMaterial().getRefractiveIndex();
         } else {
             eta1 = hit.getMaterial().getRefractiveIndex();
-            eta2 = 1;
+            eta2 = eta;
         }
         Vector3d reflectedDir = reflect(i, n);
         Ray reflectedRay = Ray(hit.getPosition() + n * 1e-6, reflectedDir);
-        Color reflectedColor = traceRay(reflectedRay, scene, depth -1);
+        Color reflectedColor = traceRay(reflectedRay, scene, depth -1, hit.getMaterial().getRefractiveIndex());
 
         std::optional<Vector3d> refractedDir = refract(i, n, eta1, eta2);
 
         if (refractedDir) {
             Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
-            refractedColor = traceRay(refractedRay, scene, depth - 1);
+            refractedColor = traceRay(refractedRay, scene, depth - 1, 1);
         } else {
             return reflectedColor;
         }
@@ -217,7 +217,28 @@ int main(int argc, char *argv[]) {
     scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, Color(0.0005, 0.0005, 0.005)));
     scene.addSphere(Vector3d(900, 450, 450), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
     scene.addSphere(Vector3d(500, 900, 850), 100, Material(Color(0.9, 0.9, 0.9), 0));
-    scene.addSphere(Vector3d(800, 500, 100), 25, Material(1.5, Color(0, 0, 0)));
+    scene.addSphere(Vector3d(800, 500, 100), 25, Material(1.6, Color(0, 0, 0)));
+
+    // Cube at (950, 700, 300), side length 150
+    Material cubeMat = Material(1.05, Color(0.005, 0.001, 0.001));
+    // Front face (Z=225, normal -Z)
+    scene.addTriangle(Vector3d(875,625,225), Vector3d(1025,775,225), Vector3d(1025,625,225), cubeMat);
+    scene.addTriangle(Vector3d(875,625,225), Vector3d(875,775,225), Vector3d(1025,775,225), cubeMat);
+    // Back face (Z=375, normal +Z)
+    scene.addTriangle(Vector3d(875,625,375), Vector3d(1025,625,375), Vector3d(1025,775,375), cubeMat);
+    scene.addTriangle(Vector3d(875,625,375), Vector3d(1025,775,375), Vector3d(875,775,375), cubeMat);
+    // Left face (X=875, normal -X)
+    scene.addTriangle(Vector3d(875,625,225), Vector3d(875,625,375), Vector3d(875,775,225), cubeMat);
+    scene.addTriangle(Vector3d(875,775,225), Vector3d(875,625,375), Vector3d(875,775,375), cubeMat);
+    // Right face (X=1025, normal +X)
+    scene.addTriangle(Vector3d(1025,625,225), Vector3d(1025,775,225), Vector3d(1025,625,375), cubeMat);
+    scene.addTriangle(Vector3d(1025,775,225), Vector3d(1025,775,375), Vector3d(1025,625,375), cubeMat);
+    // Top face (Y=625, normal -Y)
+    scene.addTriangle(Vector3d(875,625,225), Vector3d(1025,625,225), Vector3d(875,625,375), cubeMat);
+    scene.addTriangle(Vector3d(1025,625,225), Vector3d(1025,625,375), Vector3d(875,625,375), cubeMat);
+    // Bottom face (Y=775, normal +Y)
+    scene.addTriangle(Vector3d(875,775,225), Vector3d(875,775,375), Vector3d(1025,775,225), cubeMat);
+    scene.addTriangle(Vector3d(1025,775,225), Vector3d(875,775,375), Vector3d(1025,775,375), cubeMat);
 
     //Window Management
     QApplication a(argc, argv);
@@ -231,7 +252,7 @@ int main(int argc, char *argv[]) {
 
         for (int y = 0; y < height; y++) {
             Ray ray = scene.getCamera().getRay(x, y);
-            Color color = traceRay(ray, scene, 10);
+            Color color = traceRay(ray, scene, 10, 1);
             image.setPixelColor(x, y, color.getQColor());
         }
     });

@@ -5,11 +5,17 @@
 #ifndef RAYTRACER_QT_OBJECT_H
 #define RAYTRACER_QT_OBJECT_H
 
+#include <../../../util/Ray.h>
+#include <../../../util/Hit.h>
+#include <../../../util/Material.h>
+#include <../../../util/Color.h>
+
 class Object {
 private:
     Material material;
 
 public:
+    Object() : material(Material()) {}
     Object(const Material &material) : material(material) {}
     virtual ~Object() = default;
     Material getMaterial() const {

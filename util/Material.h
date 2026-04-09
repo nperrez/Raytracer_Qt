@@ -6,7 +6,7 @@
 #define RAYTRACER_QT_MATERIAL_H
 #include "Color.h"
 
-enum MaterialType {DIFFUSE, SPECULAR, METAL, DIELECTRIC};
+enum MaterialType {DIFFUSE, SPECULAR, METAL, DIELECTRIC, MESH};
 
 class Material {
 private:
@@ -22,6 +22,16 @@ private:
     double refractiveIndex;
 
 public:
+    Material() {
+        this->type = MESH;
+        this->shininess = 0;
+        this->specularFact = 0;
+        this->ambientFact = 0;
+        this->diffuseFact = 0;
+        this->refractiveIndex = 0;
+        this->glossiness = 0;
+    }
+
     Material(Color albedo) : albedo(albedo) {
         this->shininess = 0;
         this->specularFact = 1;

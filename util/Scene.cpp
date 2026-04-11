@@ -28,6 +28,10 @@ void Scene::addTriangle(const Vector3d &a, const Vector3d &b, const Vector3d &c,
     objects.push_back(std::make_unique<Triangle>(a, b, c, material));
 }
 
+void Scene::addMesh(Mesh mesh) {
+    objects.push_back(std::make_unique<Mesh>(std::move(mesh)));
+}
+
 void Scene::addLightSource(LightSource lightSource) {
     lightsources.emplace_back(lightSource);
 }

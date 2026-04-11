@@ -4,7 +4,6 @@
 #include <QImage>
 #include <queue>
 #include <execution>
-#include <iostream>
 #include <random>
 
 #include "3dObjects/Sphere.h"
@@ -20,6 +19,8 @@ constexpr int width = 1920;
 constexpr int height = 1200;
 QColor BACKGROUND_COLOR = Qt::black;
 Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
+constexpr int MAX_DEPTH = 10;
+constexpr int RANDOM_ITERATIONS = 64;
 
 Vector3d reflect(const Vector3d &rayDirection, const Vector3d &normal) {
     return rayDirection - normal * 2 * (rayDirection * normal);
@@ -33,6 +34,12 @@ Vector3d randomVect() {
     double z = dist(rng);
     double len = sqrt(x*x + y*y + z*z);
     return {x/len, y/len, z/len};
+}
+
+double randomFloat() {
+    static std::mt19937 rng(std::random_device{}());
+    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+    return dist(rng);
 }
 
 Hit castRay(const Ray &ray, const Scene &scene) {
@@ -113,13 +120,12 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                 reflective = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
             }
         } else {
-            const int iterations = 1;
             double glossyR = 0;
             double glossyG = 0;
             double glossyB = 0;
             Vector3d reflectiveDir = reflect(initialRay.getDirection(), hit.getNormal().normalize());
             Vector3d n = hit.getNormal().normalize();
-            for (int i = 0; i < iterations; i++) {
+            for (int i = 0; i < RANDOM_ITERATIONS; i++) {
                 Vector3d spreadDir = (reflectiveDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
                 if (spreadDir * n < 0) spreadDir =  n * -(spreadDir * n);
                 Ray nextRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
@@ -131,11 +137,10 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                     glossyB = glossyB + reflectiveGlossy.getB();
                 }
             }
-            reflective = Color(glossyR/iterations, glossyG/iterations, glossyB/iterations) * hit.getMaterial().getSpecular();
+            reflective = Color(glossyR/RANDOM_ITERATIONS, glossyG/RANDOM_ITERATIONS, glossyB/RANDOM_ITERATIONS) * hit.getMaterial().getSpecular();
         }
     }
     if (hit.getMaterial().getType() == DIELECTRIC) {
-        Color refractedColor;
         Vector3d n = hit.getNormal().normalize();
         Vector3d i = initialRay.getDirection().normalize();
         double eta1;
@@ -148,28 +153,51 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             eta2 = eta;
         }
         Vector3d reflectedDir = reflect(i, n);
-        Ray reflectedRay = Ray(hit.getPosition() + n * 1e-6, reflectedDir);
-        Color reflectedColor = traceRay(reflectedRay, scene, depth -1, hit.getMaterial().getRefractiveIndex());
-
         std::optional<Vector3d> refractedDir = refract(i, n, eta1, eta2);
-
-        if (refractedDir) {
-            Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
-            refractedColor = traceRay(refractedRay, scene, depth - 1, 1);
-        } else {
-            return reflectedColor;
-        }
-
         double cosA = std::clamp(-(i * n), 0.0, 1.0);
         double f = fresnel(cosA, eta1, eta2);
-        if (!hit.isFrontFace()) {
-            double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
-            double g = exp(hit.getMaterial().getAbsorption().getG() * hit.getLambda() * -1);
-            double b = exp(hit.getMaterial().getAbsorption().getB() * hit.getLambda() * -1);
-            refractedColor = refractedColor * Color(r, g, b);
-        }
-        return reflectedColor * f + refractedColor * (1 - f);
 
+        if (hit.getMaterial().getGlossiness() == 0) {
+            // Perfect glass: deterministic reflect + refract blend (no branching)
+            Ray reflectedRay = Ray(hit.getPosition() + n * 1e-6, reflectedDir);
+            Color reflectedColor = traceRay(reflectedRay, scene, depth - 1, hit.getMaterial().getRefractiveIndex());
+            if (!refractedDir) return reflectedColor;
+            Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
+            Color refractedColor = traceRay(refractedRay, scene, depth - 1, 1);
+            if (!hit.isFrontFace()) {
+                double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
+                double g = exp(hit.getMaterial().getAbsorption().getG() * hit.getLambda() * -1);
+                double b = exp(hit.getMaterial().getAbsorption().getB() * hit.getLambda() * -1);
+                refractedColor = refractedColor * Color(r, g, b);
+            }
+            return reflectedColor * f + refractedColor * (1 - f);
+        }
+        // Frosted glass: stochastic sampling — each iteration picks reflect OR refract,
+        // never both. Branching factor stays at RANDOM_ITERATIONS (not 1+RANDOM_ITERATIONS).
+        double glossyR = 0, glossyG = 0, glossyB = 0;
+        for (int j = 0; j < RANDOM_ITERATIONS; j++) {
+            Color sampleColor;
+            if (!refractedDir || randomFloat() < f) {
+                Vector3d spreadDir = (reflectedDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
+                if (spreadDir * n < 0) spreadDir = n * -(spreadDir * n);
+                Ray sampleRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
+                sampleColor = traceRay(sampleRay, scene, depth - 1, hit.getMaterial().getRefractiveIndex());
+            } else {
+                Vector3d spreadDir = ((*refractedDir) + randomVect() * hit.getMaterial().getGlossiness()).normalize();
+                Ray sampleRay = Ray(hit.getPosition() + spreadDir * 1e-6, spreadDir);
+                sampleColor = traceRay(sampleRay, scene, depth - 1, 1);
+                if (!hit.isFrontFace()) {
+                    double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
+                    double g = exp(hit.getMaterial().getAbsorption().getG() * hit.getLambda() * -1);
+                    double b = exp(hit.getMaterial().getAbsorption().getB() * hit.getLambda() * -1);
+                    sampleColor = sampleColor * Color(r, g, b);
+                }
+            }
+            glossyR += sampleColor.getR();
+            glossyG += sampleColor.getG();
+            glossyB += sampleColor.getB();
+        }
+        return Color(glossyR / RANDOM_ITERATIONS, glossyG / RANDOM_ITERATIONS, glossyB / RANDOM_ITERATIONS);
     }
     return AMBIENT_COLOR * hit.getMaterial().getAmbientFact() + diffuse + specular + reflective;
 }
@@ -213,14 +241,14 @@ int main(int argc, char *argv[]) {
     scene.addLightSource(LightSource(Vector3d(1000, 100, 500), Color(0.8, 0.8, 0.8)));
     scene.addLightSource(LightSource(Vector3d(800, 600, 70), Color(0.3, 0.3, 0.3)));
 
-    scene.addSphere(Vector3d(1300, 750, 600), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
-    scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, Color(0.0005, 0.0005, 0.005)));
+    /*scene.addSphere(Vector3d(1300, 750, 600), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
+    scene.addSphere(Vector3d(500, 600, 600), 200, Material(1.04, 0, Color(0.0005, 0.0005, 0.005)));
     scene.addSphere(Vector3d(900, 450, 450), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
     scene.addSphere(Vector3d(500, 900, 850), 100, Material(Color(0.9, 0.9, 0.9), 0));
-    scene.addSphere(Vector3d(800, 500, 100), 25, Material(1.6, Color(0, 0, 0)));
+    scene.addSphere(Vector3d(800, 500, 100), 25, Material(1.6, 0, Color(0, 0, 0)));
 
     // Cube at (950, 700, 300), side length 150
-    Material cubeMat = Material(1.05, Color(0.005, 0.001, 0.001));
+    Material cubeMat = Material(1.05, 0, Color(0.005, 0.001, 0.001));
     // Front face (Z=225, normal -Z)
     scene.addTriangle(Vector3d(875,625,225), Vector3d(1025,775,225), Vector3d(1025,625,225), cubeMat);
     scene.addTriangle(Vector3d(875,625,225), Vector3d(875,775,225), Vector3d(1025,775,225), cubeMat);
@@ -238,7 +266,11 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Vector3d(1025,625,225), Vector3d(1025,625,375), Vector3d(875,625,375), cubeMat);
     // Bottom face (Y=775, normal +Y)
     scene.addTriangle(Vector3d(875,775,225), Vector3d(875,775,375), Vector3d(1025,775,225), cubeMat);
-    scene.addTriangle(Vector3d(1025,775,225), Vector3d(875,775,375), Vector3d(1025,775,375), cubeMat);
+    scene.addTriangle(Vector3d(1025,775,225), Vector3d(875,775,375), Vector3d(1025,775,375), cubeMat);*/
+
+    /*scene.addSphere(Vector3d(800, 700, 500), 150, Material(1.1, 0.1, Color(0, 0, 0)));
+
+    scene.addSphere(Vector3d(780, 750, 800), 75, Material(Color(0.2, 0.4, 1), 0.1, 1));*/
 
     //Window Management
     QApplication a(argc, argv);
@@ -252,7 +284,7 @@ int main(int argc, char *argv[]) {
 
         for (int y = 0; y < height; y++) {
             Ray ray = scene.getCamera().getRay(x, y);
-            Color color = traceRay(ray, scene, 10, 1);
+            Color color = traceRay(ray, scene, MAX_DEPTH, 1);
             image.setPixelColor(x, y, color.getQColor());
         }
     });

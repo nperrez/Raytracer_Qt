@@ -10,6 +10,7 @@
 #include <memory_resource>
 #include <../../../3dObjects/Sphere.h>
 #include <../../../3dObjects/Triangle.h>
+#include <../../../3dObjects/Mesh.h>
 #include <../../../3dObjects/Camera.h>
 #include "../3dObjects/LightSource.h"
 
@@ -30,6 +31,7 @@ public:
     Scene(int width, int height, Camera camera, Color BACKGROUND_COLOR);
     void addSphere(const Vector3d &center, double radius, const Material &material);
     void addTriangle(const Vector3d &a, const Vector3d &b, const Vector3d &c, const Material &material);
+    void addMesh(Mesh mesh);
     void addLightSource(LightSource lightSource);
     int getWidth() const;
     int getHeight() const;

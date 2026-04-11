@@ -84,14 +84,14 @@ std::unordered_map<std::string, Material> Mesh::parseMtl(const std::string &mtlP
 // .obj parser
 // ---------------------------------------------------------------------------
 
-Mesh Mesh::fromObj(const std::string &objPath) {
+Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, const Material& material) {
     // Directory prefix for resolving relative mtllib paths
     std::string objDir;
     const size_t slash = objPath.find_last_of("/\\");
     if (slash != std::string::npos) objDir = objPath.substr(0, slash + 1);
 
     std::unordered_map<std::string, Material> materials;
-    Material currentMaterial;   // default MESH material until first usemtl
+    Material currentMaterial = material;   // default MESH material until first usemtl
 
     std::vector<Vector3d> vertices;
     std::vector<Triangle> triangles;
@@ -112,7 +112,7 @@ Mesh Mesh::fromObj(const std::string &objPath) {
         if (p[0] == 'v' && p[1] == ' ') {
             // Vertex position
             sscanf(p + 2, "%f %f %f", &fx, &fy, &fz);
-            vertices.emplace_back(fx, fy, fz);
+            vertices.emplace_back(fx * scale, fy * scale, fz * scale);
 
         } else if (p[0] == 'f' && p[1] == ' ') {
             // Face — supports v, v/t, v/t/n, v//n; quads/ngons fan-triangulated
@@ -137,13 +137,13 @@ Mesh Mesh::fromObj(const std::string &objPath) {
                     triangles.emplace_back(vertices[ai], vertices[bi], vertices[ci], currentMaterial);
             }
 
-        } else if (line.compare(0, 7, "usemtl ") == 0) {
+        } else if (line.compare(0, 7, "usemtl ") == 0 && !ownMaterial) {
             std::string mtlName = line.substr(7);
             while (!mtlName.empty() && mtlName.back() == ' ') mtlName.pop_back();
             auto it = materials.find(mtlName);
             if (it != materials.end()) currentMaterial = it->second;
 
-        } else if (line.compare(0, 7, "mtllib ") == 0) {
+        } else if (line.compare(0, 7, "mtllib ") == 0 && !ownMaterial) {
             std::string mtlFile = line.substr(7);
             while (!mtlFile.empty() && mtlFile.back() == ' ') mtlFile.pop_back();
             materials = parseMtl(objDir + mtlFile);

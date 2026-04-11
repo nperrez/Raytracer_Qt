@@ -21,7 +21,7 @@ private:
 public:
     Mesh();
     explicit Mesh(std::vector<Triangle> triangles);
-    static Mesh fromObj(const std::string &objPath);
+    static Mesh fromObj(const std::string &objPath, double scale = 1.0, bool ownMaterial = false, const Material& material = Material());
     Hit intersect(Ray ray) const override;
 
 };

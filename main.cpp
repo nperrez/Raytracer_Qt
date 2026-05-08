@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
     // X: -800..800, Y: -500..500 (Y=-500 ceiling, Y=500 floor), Z: -500..500
     // Camera sits at Z=-450 (near front wall), looks toward origin.
     // FOV = 2*atan(500/875) so the back wall fills the frame exactly.
-    const auto camera = Camera(Vector3d(0, 0, -450), Vector3d(0, 0, 0), 1.8383, width, height);
+    const auto camera = Camera(Vector3d(0, 0, -1000), Vector3d(0, 0, 0), 1.8383, width, height);
     auto scene = Scene(width, height, camera, BACKGROUND_COLOR);
 
     // Wall materials
@@ -216,8 +216,8 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Vector3d(-800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800,-500, 500), wallWhite);
     scene.addTriangle(Vector3d( 800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800, 500, 500), wallWhite);
     // Front wall (white, Z=-500, normal +Z)
-    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800,-500,-500), Vector3d( 800,-500,-500), wallWhite);
-    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800,-500,-500), Vector3d( 800, 500,-500), wallWhite);
+    //scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800,-500,-500), Vector3d( 800,-500,-500), wallWhite);
+    //scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800,-500,-500), Vector3d( 800, 500,-500), wallWhite);
     // Ceiling (white, Y=-500, normal +Y)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500,-500), wallWhite);
     scene.addTriangle(Vector3d( 800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500, 500), wallWhite);
@@ -230,12 +230,12 @@ int main(int argc, char *argv[]) {
     scene.addLightSource(LightSource(Vector3d( 200, -400, 0), Color(0.8, 0.8, 0.8)));
     scene.addLightSource(LightSource(Vector3d(   0,  100, -430), Color(0.3, 0.3, 0.3)));
 
-    scene.addSphere(Vector3d( 500,  250, 100), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
+    //scene.addSphere(Vector3d( 500,  250, 100), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
     //scene.addSphere(Vector3d(-300,  100, 100), 200, Material(1.04, 0, Color(0.0005, 0.0005, 0.005)));
     //scene.addSphere(Vector3d( 100,  -50, -50), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
-    scene.addSphere(Vector3d(-300,  400, 350), 100, Material(Color(0.9, 0.9, 0.9), 0));
+    //scene.addSphere(Vector3d(-300,  400, 350), 100, Material(Color(0.9, 0.9, 0.9), 0));
     //scene.addSphere(Vector3d(   0,    0,-400),  25, Material(1.6, 0, Color(0, 0, 0)));
-    scene.addSphere(Vector3d(-20, 80, 300), 75, Material(Color(0.8, 0.1, 0.2), 100, 1, 0.1, 1));
+    //scene.addSphere(Vector3d(-20, 80, 300), 75, Material(Color(0.8, 0.1, 0.2), 100, 1, 0.1, 1));
 
     /*// Cube centered at (150, 200, -200), side length 150
     Material cubeMat = Material(1.05, 0, Color(0.005, 0.001, 0.001));
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
     /*scene.addSphere(Vector3d(0, 200, 0), 150, Material(1.1, 0.1, Color(0, 0, 0)));
     scene.addSphere(Vector3d(-20, 250, 300), 75, Material(Color(0.2, 0.4, 1), 0.1, 1));*/
 
-    scene.addMesh(Mesh::fromObj("/home/nicolas/Desktop/Bean1.obj", 100, true, Material(1.2, 0, Color(0.01, 0.003, 0))));
+    scene.addMesh(Mesh::fromObj("./objs/glass2.obj", 1, true, Material(1.2, 0, Color(0.01, 0.003, 0))));
 
     scene.build();
 

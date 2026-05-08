@@ -2,9 +2,12 @@
 #include <QApplication>
 #include <QLabel>
 #include <QImage>
+#include <QTimer>
 #include <queue>
 #include <execution>
 #include <random>
+#include <atomic>
+#include <thread>
 
 #include "3dObjects/Sphere.h"
 #include "util/Color.h"
@@ -264,24 +267,39 @@ int main(int argc, char *argv[]) {
 
     //Window Management
     QApplication a(argc, argv);
-    QImage image(scene.getWidth(), scene.getHeight(), QImage::Format_ARGB32);
 
-    //Actual Raytracing stuff (+Multithreading)
-    std::vector<int> xs(width);
-    std::iota(xs.begin(), xs.end(), 0);
+    //Pixel Buffer
+    std::vector<QRgb> pixels(width * height, qRgb(0, 0, 0));
 
-    std::for_each(std::execution::par, xs.begin(), xs.end(), [&](const int x) {
+    QLabel label;
+    label.setPixmap(QPixmap(width, height));
+    label.show();
 
-        for (int y = 0; y < height; y++) {
-            Ray ray = scene.getCamera().getRay(x, y);
-            Color color = traceRay(ray, scene, MAX_DEPTH, 1);
-            image.setPixelColor(x, y, color.getQColor());
-        }
+    //Actual Raytracing stuff
+    std::atomic<bool> done{false};
+    std::thread renderThread([&]() {
+        std::vector<int> xs(width);
+        std::iota(xs.begin(), xs.end(), 0);
+        std::for_each(std::execution::par, xs.begin(), xs.end(), [&](const int x) {
+
+            for (int y = 0; y < height; y++) {
+                const Ray ray = scene.getCamera().getRay(x, y);
+                Color color = traceRay(ray, scene, MAX_DEPTH, 1);
+                pixels[y * width + x] = color.getQColor().rgba();
+            }
+        });
+        done = true;
     });
 
-    //Window Management
-    QLabel label;
-    label.setPixmap(QPixmap::fromImage(image));
-    label.show();
-    return QApplication::exec();
+    QTimer timer;
+    QObject::connect(&timer, &QTimer::timeout, [&]() {
+        QImage snap(reinterpret_cast<uchar *>(pixels.data()), width, height, QImage::Format_ARGB32);
+        label.setPixmap(QPixmap::fromImage(snap.copy()));
+        if (done) timer.stop();
+    });
+    timer.start(100);
+
+    int result = QApplication::exec();
+    renderThread.join();
+    return result;
 }

@@ -3,13 +3,20 @@
 //
 
 #include "Mesh.h"
+#include "../util/AABB.h"
 #include <cstdio>
 #include <fstream>
 #include <limits>
 
 Mesh::Mesh() {}
 
-Mesh::Mesh(std::vector<Triangle> tris) : triangles(std::move(tris)) {}
+Mesh::Mesh(std::vector<Triangle> tris) : triangles(std::move(tris)) {
+    std::vector<Object*> ptrs;
+    ptrs.reserve(triangles.size());
+    for (Triangle& t : triangles)
+        ptrs.push_back(&t);
+    meshBVH.build(std::move(ptrs));
+}
 
 // ---------------------------------------------------------------------------
 // .mtl parser
@@ -155,18 +162,21 @@ Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, c
 }
 
 // ---------------------------------------------------------------------------
+// Bounding box — union of all triangle bounds
+// ---------------------------------------------------------------------------
+
+AABB Mesh::getBoundingBox() const {
+    AABB box;
+    for (const Triangle &tri : triangles) {
+        box.expand(tri.getBoundingBox());
+    }
+    return box;
+}
+
+// ---------------------------------------------------------------------------
 // Intersection — walks all triangles, returns closest hit
 // ---------------------------------------------------------------------------
 
 Hit Mesh::intersect(Ray ray) const {
-    Hit closest(-1, Vector3d(0, 0, 0), Vector3d(0, 0, 0), Material(Color(0, 0, 0)));
-    double minLambda = std::numeric_limits<double>::infinity();
-    for (const Triangle &tri : triangles) {
-        Hit h = tri.intersect(ray);
-        if (h.getLambda() > 0 && h.getLambda() < minLambda) {
-            minLambda = h.getLambda();
-            closest = h;
-        }
-    }
-    return closest;
+    return meshBVH.traverse(ray);
 }

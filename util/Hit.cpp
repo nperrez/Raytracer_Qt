@@ -9,7 +9,7 @@ Hit::Hit(double lambda, Vector3d position, Vector3d normal, const Material &mate
 }
 
 Hit::Hit() : material(Material(Color(0, 0, 0))) {
-    lambda = 0;
+    lambda = -1;
     position = Vector3d(0, 0, 0);
     normal = Vector3d(0, 0, 0);
 }

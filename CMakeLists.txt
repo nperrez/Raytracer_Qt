@@ -36,7 +36,6 @@ add_executable(Raytracer_Qt main.cpp
         util/Hit.h
         3dObjects/Triangle.cpp
         3dObjects/Triangle.h
-        util/Matrix.cpp
         util/Matrix.h
         util/Scene.cpp
         util/Scene.h
@@ -46,6 +45,7 @@ add_executable(Raytracer_Qt main.cpp
         3dObjects/Object.h
         3dObjects/Mesh.cpp
         3dObjects/Mesh.h
+        util/BVH.cpp
 )
 target_link_libraries(Raytracer_Qt
         PRIVATE TBB::tbb

@@ -42,20 +42,6 @@ double randomFloat() {
     return dist(rng);
 }
 
-Hit castRay(const Ray &ray, const Scene &scene) {
-    double lambda = std::numeric_limits<double>::infinity();
-    Hit closestHit;
-
-    for (auto &objects: scene.getObjects()) {
-        Hit hit = objects->intersect(ray);
-        if (hit.getLambda() >= 0 && hit.getLambda() < lambda) {
-            lambda = hit.getLambda();
-            closestHit = hit;
-        }
-    }
-
-    return closestHit;
-}
 
 std::optional<Vector3d> refract(Vector3d i, Vector3d n, double eta1, double eta2) {
     double eta = eta1/eta2;
@@ -79,7 +65,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
     Color color(BACKGROUND_COLOR);
     if (depth <= 0) return color;
 
-    Hit hit = castRay(initialRay, scene);
+    Hit hit = scene.castRay(initialRay);
     if (hit.getLambda() <= 0) return color;
 
     Color diffuse = Color(0, 0, 0);
@@ -115,7 +101,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
     if (hit.getMaterial().getType() == METAL) {
         if (hit.getMaterial().getGlossiness() == 0) {
             Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * 1e-6, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
-            Hit reflectedHit = castRay(nextRay, scene);
+            Hit reflectedHit = scene.castRay(nextRay);
             if (reflectedHit.getLambda() >= 0) {
                 reflective = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
             }
@@ -129,7 +115,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                 Vector3d spreadDir = (reflectiveDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
                 if (spreadDir * n < 0) spreadDir =  n * -(spreadDir * n);
                 Ray nextRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
-                Hit reflectedHit = castRay(nextRay, scene);
+                Hit reflectedHit = scene.castRay(nextRay);
                 if (reflectedHit.getLambda() >= 0) {
                     Color reflectiveGlossy = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
                     glossyR = glossyR + reflectiveGlossy.getR();
@@ -273,6 +259,8 @@ int main(int argc, char *argv[]) {
     scene.addSphere(Vector3d(-20, 250, 300), 75, Material(Color(0.2, 0.4, 1), 0.1, 1));*/
 
     scene.addMesh(Mesh::fromObj("/home/nicolas/Desktop/Bean1.obj", 100, true, Material(1.2, 0, Color(0.01, 0.003, 0))));
+
+    scene.build();
 
     //Window Management
     QApplication a(argc, argv);

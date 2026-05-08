@@ -25,6 +25,7 @@ public:
     [[nodiscard]] double getDepth() const;
 
     [[nodiscard]] Hit intersect(Ray ray) const override;
+    [[nodiscard]] AABB getBoundingBox() const override;
 };
 
 

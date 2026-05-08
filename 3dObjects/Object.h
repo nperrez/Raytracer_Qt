@@ -9,6 +9,7 @@
 #include <../../../util/Hit.h>
 #include <../../../util/Material.h>
 #include <../../../util/Color.h>
+#include <../../../util/AABB.h>
 
 class Object {
 private:
@@ -25,6 +26,7 @@ public:
         return material.getAlbedo();
     }
     virtual Hit intersect(Ray ray) const = 0;
+    virtual AABB getBoundingBox() const = 0;
 };
 
 

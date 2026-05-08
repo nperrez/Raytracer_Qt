@@ -24,6 +24,7 @@ public:
     [[nodiscard]] Vector3d getNormal() const;
     [[nodiscard]] double getArea() const;
     [[nodiscard]] Hit intersect(Ray ray) const override;
+    [[nodiscard]] AABB getBoundingBox() const override;
 
 };
 

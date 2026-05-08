@@ -5,6 +5,7 @@
 #include "Sphere.h"
 
 #include <cmath>
+#include "../util/AABB.h"
 
 Sphere::Sphere(const Vector3d &center, const double radius, const Material &material) : Object(material), center(center), radius(radius) {}
 
@@ -18,6 +19,11 @@ double Sphere::getRadius() const {
 
 double Sphere::getDepth() const {
     return center.getZ();
+}
+
+AABB Sphere::getBoundingBox() const {
+    Vector3d r(radius, radius, radius);
+    return AABB(center - r, center + r);
 }
 
 Hit Sphere::intersect(Ray ray) const {

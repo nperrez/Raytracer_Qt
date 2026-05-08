@@ -3,6 +3,7 @@
 //
 
 #include "Scene.h"
+#include <limits>
 #include <memory>
 #include <memory_resource>
 
@@ -46,4 +47,16 @@ std::pmr::vector<LightSource> Scene::getLightSources() const {
 
 Camera Scene::getCamera() const {
     return camera;
+}
+
+void Scene::build() {
+    std::vector<Object*> ptrs;
+    ptrs.reserve(objects.size());
+    for (const auto& obj : objects)
+        ptrs.push_back(obj.get());
+    sceneBVH.build(std::move(ptrs));
+}
+
+Hit Scene::castRay(Ray ray) const {
+    return sceneBVH.traverse(ray);
 }

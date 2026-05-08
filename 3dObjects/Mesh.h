@@ -10,11 +10,13 @@
 
 #include "Object.h"
 #include "Triangle.h"
+#include "../util/BVH.h"
 
 
 class Mesh : public Object {
 private:
     std::vector<Triangle> triangles;
+    BVH meshBVH;
 
     static std::unordered_map<std::string, Material> parseMtl(const std::string &mtlPath);
 
@@ -23,6 +25,7 @@ public:
     explicit Mesh(std::vector<Triangle> triangles);
     static Mesh fromObj(const std::string &objPath, double scale = 1.0, bool ownMaterial = false, const Material& material = Material());
     Hit intersect(Ray ray) const override;
+    AABB getBoundingBox() const override;
 
 };
 

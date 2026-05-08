@@ -13,6 +13,7 @@
 #include <../../../3dObjects/Mesh.h>
 #include <../../../3dObjects/Camera.h>
 #include "../3dObjects/LightSource.h"
+#include "BVH.h"
 
 
 class Scene {
@@ -22,6 +23,7 @@ private:
     std::pmr::vector<Triangle> triangles;
     std::pmr::vector<std::unique_ptr<Object>> objects;
     std::pmr::vector<LightSource> lightsources;
+    BVH sceneBVH;
 
     Camera camera;
     int width, height;
@@ -41,6 +43,8 @@ public:
     const std::pmr::vector<std::unique_ptr<Object>>& getObjects() const;
     std::pmr::vector<LightSource> getLightSources() const;
     Camera getCamera() const;
+    void build();
+    Hit castRay(Ray ray) const;
 
 };
 

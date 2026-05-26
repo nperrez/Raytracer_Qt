@@ -6,7 +6,7 @@
 #include "../util/AABB.h"
 #include <cstdio>
 #include <fstream>
-#include <limits>
+#include <iostream>
 
 Mesh::Mesh() {}
 
@@ -91,7 +91,7 @@ std::unordered_map<std::string, Material> Mesh::parseMtl(const std::string &mtlP
 // .obj parser
 // ---------------------------------------------------------------------------
 
-Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, const Material& material) {
+Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, const Material& material, Vector3d offset) {
     // Directory prefix for resolving relative mtllib paths
     std::string objDir;
     const size_t slash = objPath.find_last_of("/\\");
@@ -106,8 +106,10 @@ Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, c
     triangles.reserve(2048);
 
     std::ifstream file(objPath);
-    if (!file.is_open()) return Mesh();
-
+    if (!file.is_open()) {
+        std::cout << "File not found" << std::endl;
+        return Mesh();
+    }
     std::string line;
     while (std::getline(file, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
@@ -119,7 +121,8 @@ Mesh Mesh::fromObj(const std::string &objPath, double scale, bool ownMaterial, c
         if (p[0] == 'v' && p[1] == ' ') {
             // Vertex position
             sscanf(p + 2, "%f %f %f", &fx, &fy, &fz);
-            vertices.emplace_back(fx * scale, fy * scale, fz * scale);
+            // OBJ (Blender Z-up): X right, Y depth, Z up → scene: X right, Y down, Z into screen
+            vertices.emplace_back(fx * scale + offset.getX(), -fz * scale + offset.getY(), -fy * scale + offset.getZ());
 
         } else if (p[0] == 'f' && p[1] == ' ') {
             // Face — supports v, v/t, v/t/n, v//n; quads/ngons fan-triangulated

@@ -60,19 +60,20 @@ Hit Triangle::intersect(Ray ray) const {
     const Vector3d s = ray.getLocation() - a;
     const double u = invDet * (s * h);
 
-    if (u < 0.0 || u > 1.0)
+    constexpr double eps = 1e-4;
+    if (u < -eps || u > 1.0 + eps)
         return Hit(-1, Vector3d(0, 0, 0), normal, getMaterial());
 
     // q = s × edge1
     const Vector3d q = s / edge1;
     const double v = invDet * (ray.getDirection() * q);
 
-    if (v < 0.0 || u + v > 1.0)
+    if (v < -eps || u + v > 1.0 + eps)
         return Hit(-1, Vector3d(0, 0, 0), normal, getMaterial());
 
     const double lambda = invDet * (edge2 * q);
 
-    if (lambda < 1e-10)
+    if (lambda < 1e-4)
         return Hit(-1, Vector3d(0, 0, 0), normal, getMaterial());
 
     Hit hit(lambda, ray.getLocation() + ray.getDirection() * lambda, normal, getMaterial());

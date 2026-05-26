@@ -8,6 +8,7 @@
 #include <random>
 #include <atomic>
 #include <thread>
+#include <filesystem>
 
 #include "3dObjects/Sphere.h"
 #include "util/Color.h"
@@ -19,11 +20,13 @@
 
 //Image properties
 constexpr int width = 1920;
-constexpr int height = 1200;
+constexpr int height = 1080;
 QColor BACKGROUND_COLOR = Qt::black;
 Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
 constexpr int MAX_DEPTH = 10;
-constexpr int RANDOM_ITERATIONS = 64;
+constexpr int RANDOM_ITERATIONS_METAL = 64;
+constexpr int RANDOM_ITERATIONS_GLASS = 32;
+constexpr double EPSILON = 1e-6;
 
 Vector3d reflect(const Vector3d &rayDirection, const Vector3d &normal) {
     return rayDirection - normal * 2 * (rayDirection * normal);
@@ -83,7 +86,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
 
         if (s*hit.getNormal() >= 0) {
             bool blocked = false;
-            const auto ray = Ray(hit.getPosition() + s * 10e-6, s);
+            const auto ray = Ray(hit.getPosition() + s * EPSILON, s);
             for (auto &object: scene.getObjects()) {
                 if (object->getMaterial().getType() == DIELECTRIC) continue;
                 if (Hit hit2 = object->intersect(ray); hit2.getLambda() >= 0 && (lightSource.getPosition() - hit.getPosition()).getLength() > (hit2.getPosition() - hit.getPosition()).getLength()) {
@@ -92,7 +95,13 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                 }
             }
             if (!blocked) {
-                diffuse = diffuse + lightSource.getColor() * hit.getColor() * hit.getMaterial().getDiffuseFact() * std::max(0.0, n * l);
+                Color albedo = hit.getColor();
+                if (hit.getMaterial().isCheckerboard()) {
+                    int ix = (int)std::floor(hit.getPosition().getX() / 100.0);
+                    int iz = (int)std::floor(hit.getPosition().getZ() / 100.0);
+                    if (((ix + iz) % 2 + 2) % 2 != 0) albedo = hit.getMaterial().getAlbedo2();
+                }
+                diffuse = diffuse + lightSource.getColor() * albedo * hit.getMaterial().getDiffuseFact() * std::max(0.0, n * l);
 
                 if (hit.getMaterial().getType() == SPECULAR) {
                     const Vector3d h = (l + v).normalize();
@@ -103,30 +112,33 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
     }
     if (hit.getMaterial().getType() == METAL) {
         if (hit.getMaterial().getGlossiness() == 0) {
-            Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * 1e-6, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
+            Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * EPSILON, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
             Hit reflectedHit = scene.castRay(nextRay);
             if (reflectedHit.getLambda() >= 0) {
                 reflective = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
             }
         } else {
-            double glossyR = 0;
-            double glossyG = 0;
-            double glossyB = 0;
             Vector3d reflectiveDir = reflect(initialRay.getDirection(), hit.getNormal().normalize());
             Vector3d n = hit.getNormal().normalize();
-            for (int i = 0; i < RANDOM_ITERATIONS; i++) {
-                Vector3d spreadDir = (reflectiveDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
-                if (spreadDir * n < 0) spreadDir =  n * -(spreadDir * n);
-                Ray nextRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
-                Hit reflectedHit = scene.castRay(nextRay);
-                if (reflectedHit.getLambda() >= 0) {
-                    Color reflectiveGlossy = traceRay(nextRay, scene, depth -1, 1) * hit.getMaterial().getSpecular();
-                    glossyR = glossyR + reflectiveGlossy.getR();
-                    glossyG = glossyG + reflectiveGlossy.getG();
-                    glossyB = glossyB + reflectiveGlossy.getB();
+            if (depth == 1) {
+                Ray nextRay = Ray(hit.getPosition() + n * EPSILON, reflectiveDir);
+                if (scene.castRay(nextRay).getLambda() >= 0)
+                    reflective = traceRay(nextRay, scene, 0, 1) * hit.getMaterial().getSpecular();
+            } else {
+                double glossyR = 0, glossyG = 0, glossyB = 0;
+                for (int i = 0; i < RANDOM_ITERATIONS_METAL; i++) {
+                    Vector3d spreadDir = (reflectiveDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
+                    if (spreadDir * n < 0) spreadDir = n * -(spreadDir * n);
+                    Ray nextRay = Ray(hit.getPosition() + n * EPSILON, spreadDir);
+                    if (scene.castRay(nextRay).getLambda() >= 0) {
+                        Color reflectiveGlossy = traceRay(nextRay, scene, depth - 1, 1) * hit.getMaterial().getSpecular();
+                        glossyR += reflectiveGlossy.getR();
+                        glossyG += reflectiveGlossy.getG();
+                        glossyB += reflectiveGlossy.getB();
+                    }
                 }
+                reflective = Color(glossyR/RANDOM_ITERATIONS_METAL, glossyG/RANDOM_ITERATIONS_METAL, glossyB/RANDOM_ITERATIONS_METAL) * hit.getMaterial().getSpecular();
             }
-            reflective = Color(glossyR/RANDOM_ITERATIONS, glossyG/RANDOM_ITERATIONS, glossyB/RANDOM_ITERATIONS) * hit.getMaterial().getSpecular();
         }
     }
     if (hit.getMaterial().getType() == DIELECTRIC) {
@@ -148,10 +160,10 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
 
         if (hit.getMaterial().getGlossiness() == 0) {
             // Perfect glass: deterministic reflect + refract blend (no branching)
-            Ray reflectedRay = Ray(hit.getPosition() + n * 1e-6, reflectedDir);
+            Ray reflectedRay = Ray(hit.getPosition() + n * EPSILON, reflectedDir);
             Color reflectedColor = traceRay(reflectedRay, scene, depth - 1, hit.getMaterial().getRefractiveIndex());
             if (!refractedDir) return reflectedColor;
-            Ray refractedRay(hit.getPosition() + (*refractedDir) * 1e-6, *refractedDir);
+            Ray refractedRay(hit.getPosition() + n * -EPSILON, *refractedDir);
             Color refractedColor = traceRay(refractedRay, scene, depth - 1, 1);
             if (!hit.isFrontFace()) {
                 double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
@@ -163,17 +175,25 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
         }
         // Frosted glass: stochastic sampling — each iteration picks reflect OR refract,
         // never both. Branching factor stays at RANDOM_ITERATIONS (not 1+RANDOM_ITERATIONS).
+        // At depth 1 we can't afford the loop — fall back to a single unspread ray.
+        if (depth == 1) {
+            Ray reflectedRay = Ray(hit.getPosition() + n * EPSILON, reflectedDir);
+            if (!refractedDir) return traceRay(reflectedRay, scene, 0, hit.getMaterial().getRefractiveIndex());
+            Ray refractedRay(hit.getPosition() + n * -EPSILON, *refractedDir);
+            return traceRay(reflectedRay, scene, 0, hit.getMaterial().getRefractiveIndex()) * f
+                 + traceRay(refractedRay, scene, 0, 1) * (1 - f);
+        }
         double glossyR = 0, glossyG = 0, glossyB = 0;
-        for (int j = 0; j < RANDOM_ITERATIONS; j++) {
+        for (int j = 0; j < RANDOM_ITERATIONS_GLASS; j++) {
             Color sampleColor;
             if (!refractedDir || randomFloat() < f) {
                 Vector3d spreadDir = (reflectedDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
                 if (spreadDir * n < 0) spreadDir = n * -(spreadDir * n);
-                Ray sampleRay = Ray(hit.getPosition() + n * 1e-6, spreadDir);
+                Ray sampleRay = Ray(hit.getPosition() + n * EPSILON, spreadDir);
                 sampleColor = traceRay(sampleRay, scene, depth - 1, hit.getMaterial().getRefractiveIndex());
             } else {
                 Vector3d spreadDir = ((*refractedDir) + randomVect() * hit.getMaterial().getGlossiness()).normalize();
-                Ray sampleRay = Ray(hit.getPosition() + spreadDir * 1e-6, spreadDir);
+                Ray sampleRay = Ray(hit.getPosition() + n * -EPSILON, spreadDir);
                 sampleColor = traceRay(sampleRay, scene, depth - 1, 1);
                 if (!hit.isFrontFace()) {
                     double r = exp(hit.getMaterial().getAbsorption().getR() * hit.getLambda() * -1);
@@ -186,7 +206,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             glossyG += sampleColor.getG();
             glossyB += sampleColor.getB();
         }
-        return Color(glossyR / RANDOM_ITERATIONS, glossyG / RANDOM_ITERATIONS, glossyB / RANDOM_ITERATIONS);
+        return Color(glossyR / RANDOM_ITERATIONS_GLASS, glossyG / RANDOM_ITERATIONS_GLASS, glossyB / RANDOM_ITERATIONS_GLASS);
     }
     return AMBIENT_COLOR * hit.getMaterial().getAmbientFact() + diffuse + specular + reflective;
 }
@@ -194,17 +214,21 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
 int main(int argc, char *argv[]) {
 
     //Scene setup
-    // Room: 1600 x 1000 x 1000 (width x height x depth), centered at (0,0,0).
-    // X: -800..800, Y: -500..500 (Y=-500 ceiling, Y=500 floor), Z: -500..500
-    // Camera sits at Z=-450 (near front wall), looks toward origin.
-    // FOV = 2*atan(500/875) so the back wall fills the frame exactly.
-    const auto camera = Camera(Vector3d(0, 0, -1000), Vector3d(0, 0, 0), 1.8383, width, height);
+    const auto camera = Camera(Vector3d(-100, 180, -469), Vector3d(0, 200, 0), 1.65, width, height);
     auto scene = Scene(width, height, camera, BACKGROUND_COLOR);
 
-    // Wall materials
-    Material wallBlue  = Material(Color(0.1, 0.1, 0.8), 0, 0.0, 0.2, 1.0);
+    // Materials
+    Material wallBlue  = Material(Color(0.1, 0.1, 0.8), 0, 0, 0.2, 1.0);
     Material wallRed   = Material(Color(0.8, 0.1, 0.1), 0, 0.0, 0.2, 1.0);
     Material wallWhite = Material(Color(0.9, 0.9, 0.9), 0, 0.0, 0.2, 1.0);
+    Material floorCheckerboard = Material(Color(0.9, 0.9, 0.9), 0, 0.0, 0.2, 1.0);
+    floorCheckerboard.setCheckerboard(Color(0.1, 0.1, 0.1));
+    Material wallMirror = Material(Color(0.4, 0.4, 0.5), 0);
+    Material cube = Material(1.2, 0, Color(0.001, 0.01, 0.01));
+    Material lucy = Material(Color(0.8, 0.2, 0.3), 100, 0.9, 0.2, 0.9);
+    Material sphereFrosted = Material(1.1, 0.05, Color(0.006, 0.002, 0.001));
+    Material sphereMetal = Material(Color(0, 0.8, 0.2), 0.1);
+    Material sphereSpecular = Material(Color(0.8, 0.8, 0), 100, 1, 0.2, 0.9);
 
     // Left wall (blue, X=-800, normal +X)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800, 500,-500), Vector3d(-800,-500, 500), wallBlue);
@@ -213,55 +237,50 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Vector3d( 800,-500,-500), Vector3d( 800,-500, 500), Vector3d( 800, 500,-500), wallRed);
     scene.addTriangle(Vector3d( 800,-500, 500), Vector3d( 800, 500, 500), Vector3d( 800, 500,-500), wallRed);
     // Back wall (white, Z=500, normal -Z)
-    scene.addTriangle(Vector3d(-800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800,-500, 500), wallWhite);
-    scene.addTriangle(Vector3d( 800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800, 500, 500), wallWhite);
+    scene.addTriangle(Vector3d(-800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800,-500, 500), wallMirror);
+    scene.addTriangle(Vector3d( 800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800, 500, 500), wallMirror);
     // Front wall (white, Z=-500, normal +Z)
-    //scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800,-500,-500), Vector3d( 800,-500,-500), wallWhite);
-    //scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800,-500,-500), Vector3d( 800, 500,-500), wallWhite);
+    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800,-500,-500), Vector3d( 800,-500,-500), wallMirror);
+    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800,-500,-500), Vector3d( 800, 500,-500), wallMirror);
     // Ceiling (white, Y=-500, normal +Y)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500,-500), wallWhite);
     scene.addTriangle(Vector3d( 800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500, 500), wallWhite);
-    // Floor (white, Y=500, normal -Y)
-    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800, 500,-500), Vector3d(-800, 500, 500), wallWhite);
-    scene.addTriangle(Vector3d( 800, 500,-500), Vector3d( 800, 500, 500), Vector3d(-800, 500, 500), wallWhite);
+    // Floor (checkerboard, Y=500, normal -Y)
+    scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800, 500,-500), Vector3d(-800, 500, 500), floorCheckerboard);
+    scene.addTriangle(Vector3d( 800, 500,-500), Vector3d( 800, 500, 500), Vector3d(-800, 500, 500), floorCheckerboard);
 
-    //scene.addLightSource(LightSource(Vector3d(0, -400, 0), Color(1, 1, 1)));
-    scene.addLightSource(LightSource(Vector3d(-200, -400, 0), Color(0.8, 0.8, 0.8)));
-    scene.addLightSource(LightSource(Vector3d( 200, -400, 0), Color(0.8, 0.8, 0.8)));
-    scene.addLightSource(LightSource(Vector3d(   0,  100, -430), Color(0.3, 0.3, 0.3)));
+    //Lights
+    scene.addLightSource(LightSource(Vector3d(   -420,  -400, 0), Color(0.4, 0.4, 0.4)));
+    scene.addLightSource(LightSource(Vector3d(   410,  -400, 0), Color(0.7, 0.4, 0.4)));
+    scene.addLightSource(LightSource(Vector3d(   0,  -400, -403), Color(0.4, 0.7, 0.4)));
+    scene.addLightSource(LightSource(Vector3d(   0,  -400, 382), Color(0.4, 0.4, 0.7)));
 
-    //scene.addSphere(Vector3d( 500,  250, 100), 150, Material(Color(0.2, 0.7, 0.9), 0.1));
-    //scene.addSphere(Vector3d(-300,  100, 100), 200, Material(1.04, 0, Color(0.0005, 0.0005, 0.005)));
-    //scene.addSphere(Vector3d( 100,  -50, -50), 170, Material(Color(0.2, 0.8, 0.3), 50, 1, 0.1, 0.9));
-    //scene.addSphere(Vector3d(-300,  400, 350), 100, Material(Color(0.9, 0.9, 0.9), 0));
-    //scene.addSphere(Vector3d(   0,    0,-400),  25, Material(1.6, 0, Color(0, 0, 0)));
-    //scene.addSphere(Vector3d(-20, 80, 300), 75, Material(Color(0.8, 0.1, 0.2), 100, 1, 0.1, 1));
+    //Cube pedestal
+    scene.addTriangle(Vector3d( -37, 298, -137), Vector3d( -37, 498, -137), Vector3d( 137, 298, -37), cube);
+    scene.addTriangle(Vector3d( 137, 298,  -37), Vector3d( -37, 498, -137), Vector3d( 137, 498, -37), cube);
 
-    /*// Cube centered at (150, 200, -200), side length 150
-    Material cubeMat = Material(1.05, 0, Color(0.005, 0.001, 0.001));
-    // Front face (Z=-275, normal -Z)
-    scene.addTriangle(Vector3d( 75, 125,-275), Vector3d(225, 275,-275), Vector3d(225, 125,-275), cubeMat);
-    scene.addTriangle(Vector3d( 75, 125,-275), Vector3d( 75, 275,-275), Vector3d(225, 275,-275), cubeMat);
-    // Back face (Z=-125, normal +Z)
-    scene.addTriangle(Vector3d( 75, 125,-125), Vector3d(225, 125,-125), Vector3d(225, 275,-125), cubeMat);
-    scene.addTriangle(Vector3d( 75, 125,-125), Vector3d(225, 275,-125), Vector3d( 75, 275,-125), cubeMat);
-    // Left face (X=75, normal -X)
-    scene.addTriangle(Vector3d( 75, 125,-275), Vector3d( 75, 125,-125), Vector3d( 75, 275,-275), cubeMat);
-    scene.addTriangle(Vector3d( 75, 275,-275), Vector3d( 75, 125,-125), Vector3d( 75, 275,-125), cubeMat);
-    // Right face (X=225, normal +X)
-    scene.addTriangle(Vector3d(225, 125,-275), Vector3d(225, 275,-275), Vector3d(225, 125,-125), cubeMat);
-    scene.addTriangle(Vector3d(225, 275,-275), Vector3d(225, 275,-125), Vector3d(225, 125,-125), cubeMat);
-    // Top face (Y=125, normal -Y)
-    scene.addTriangle(Vector3d( 75, 125,-275), Vector3d(225, 125,-275), Vector3d( 75, 125,-125), cubeMat);
-    scene.addTriangle(Vector3d(225, 125,-275), Vector3d(225, 125,-125), Vector3d( 75, 125,-125), cubeMat);
-    // Bottom face (Y=275, normal +Y)
-    scene.addTriangle(Vector3d( 75, 275,-275), Vector3d( 75, 275,-125), Vector3d(225, 275,-275), cubeMat);
-    scene.addTriangle(Vector3d(225, 275,-275), Vector3d( 75, 275,-125), Vector3d(225, 275,-125), cubeMat);*/
+    scene.addTriangle(Vector3d( 137, 298,  -37), Vector3d( 137, 498,  -37), Vector3d(  37, 298, 137), cube);
+    scene.addTriangle(Vector3d(  37, 298,  137), Vector3d( 137, 498,  -37), Vector3d(  37, 498, 137), cube);
 
-    /*scene.addSphere(Vector3d(0, 200, 0), 150, Material(1.1, 0.1, Color(0, 0, 0)));
-    scene.addSphere(Vector3d(-20, 250, 300), 75, Material(Color(0.2, 0.4, 1), 0.1, 1));*/
+    scene.addTriangle(Vector3d(  37, 298,  137), Vector3d(  37, 498,  137), Vector3d(-137, 298,  37), cube);
+    scene.addTriangle(Vector3d(-137, 298,   37), Vector3d(  37, 498,  137), Vector3d(-137, 498,  37), cube);
 
-    scene.addMesh(Mesh::fromObj("./objs/glass2.obj", 1, true, Material(1.2, 0, Color(0.01, 0.003, 0))));
+    scene.addTriangle(Vector3d(-137, 298,   37), Vector3d(-137, 498,   37), Vector3d( -37, 298, -137), cube);
+    scene.addTriangle(Vector3d( -37, 298, -137), Vector3d(-137, 498,   37), Vector3d( -37, 498, -137), cube);
+
+    scene.addTriangle(Vector3d( -37, 298, -137), Vector3d( 137, 298,  -37), Vector3d(-137, 298,  37), cube);
+    scene.addTriangle(Vector3d( 137, 298,  -37), Vector3d(  37, 298,  137), Vector3d(-137, 298,  37), cube);
+
+    scene.addTriangle(Vector3d( -37, 498, -137), Vector3d(-137, 498,   37), Vector3d( 137, 498, -37), cube);
+    scene.addTriangle(Vector3d(-137, 498,   37), Vector3d(  37, 498,  137), Vector3d( 137, 498, -37), cube);
+
+    //Spheres
+    scene.addSphere(Vector3d(  -360,  415,  -90), 80, sphereFrosted);
+    scene.addSphere(Vector3d(310, 400, 100), 100, sphereMetal);
+    scene.addSphere(Vector3d(-300, 350, 300), 150, sphereSpecular);
+
+    //Lucy
+    scene.addMesh(Mesh::fromObj("/home/nicolas/CLionProjects/Raytracer_Qt/objs/lucy.obj", 0.3, true, lucy, Vector3d(-220, 120, -20)));
 
     scene.build();
 
@@ -295,7 +314,13 @@ int main(int argc, char *argv[]) {
     QObject::connect(&timer, &QTimer::timeout, [&]() {
         QImage snap(reinterpret_cast<uchar *>(pixels.data()), width, height, QImage::Format_ARGB32);
         label.setPixmap(QPixmap::fromImage(snap.copy()));
-        if (done) timer.stop();
+        if (done) {
+            timer.stop();
+            std::filesystem::create_directories("images");
+            int n = 1;
+            while (std::filesystem::exists("images/render_" + std::to_string(n) + ".png")) ++n;
+            snap.copy().save(QString::fromStdString("images/render_" + std::to_string(n) + ".png"));
+        }
     });
     timer.start(100);
 

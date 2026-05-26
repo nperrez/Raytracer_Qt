@@ -23,7 +23,7 @@ private:
 public:
     Mesh();
     explicit Mesh(std::vector<Triangle> triangles);
-    static Mesh fromObj(const std::string &objPath, double scale = 1.0, bool ownMaterial = false, const Material& material = Material());
+    static Mesh fromObj(const std::string &objPath, double scale = 1.0, bool ownMaterial = false, const Material& material = Material(), Vector3d offset = Vector3d(0, 0, 0));
     Hit intersect(Ray ray) const override;
     AABB getBoundingBox() const override;
 

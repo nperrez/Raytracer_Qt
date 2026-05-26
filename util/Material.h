@@ -22,6 +22,8 @@ private:
     double ambientFact;
     double diffuseFact;
     double refractiveIndex;
+    bool checkerboard = false;
+    Color albedo2;
 
 public:
     Material() {
@@ -162,6 +164,10 @@ public:
     Color getAbsorption() const {
         return absorption;
     }
+
+    bool isCheckerboard() const { return checkerboard; }
+    Color getAlbedo2() const { return albedo2; }
+    void setCheckerboard(Color c2) { checkerboard = true; albedo2 = c2; }
 };
 
 #endif //RAYTRACER_QT_MATERIAL_H

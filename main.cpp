@@ -25,7 +25,7 @@ QColor BACKGROUND_COLOR = Qt::black;
 Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
 constexpr int MAX_DEPTH = 10;
 constexpr int RANDOM_ITERATIONS_METAL = 64;
-constexpr int RANDOM_ITERATIONS_GLASS = 32;
+constexpr int RANDOM_ITERATIONS_GLASS = 16;
 constexpr double EPSILON = 1e-6;
 
 Vector3d reflect(const Vector3d &rayDirection, const Vector3d &normal) {
@@ -226,9 +226,10 @@ int main(int argc, char *argv[]) {
     Material wallMirror = Material(Color(0.4, 0.4, 0.5), 0);
     Material cube = Material(1.2, 0, Color(0.001, 0.01, 0.01));
     Material lucy = Material(Color(0.8, 0.2, 0.3), 100, 0.9, 0.2, 0.9);
-    Material sphereFrosted = Material(1.1, 0.05, Color(0.006, 0.002, 0.001));
+    Material sphereFrosted = Material(1.1, 0.0, Color(0.006, 0.002, 0.001));
     Material sphereMetal = Material(Color(0, 0.8, 0.2), 0.1);
     Material sphereSpecular = Material(Color(0.8, 0.8, 0), 100, 1, 0.2, 0.9);
+    Material sphereDiffuse = Material(Color(0.6, 0, 0.9), 0.2, 1);
 
     // Left wall (blue, X=-800, normal +X)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800, 500,-500), Vector3d(-800,-500, 500), wallBlue);
@@ -278,6 +279,7 @@ int main(int argc, char *argv[]) {
     scene.addSphere(Vector3d(  -360,  415,  -90), 80, sphereFrosted);
     scene.addSphere(Vector3d(310, 400, 100), 100, sphereMetal);
     scene.addSphere(Vector3d(-300, 350, 300), 150, sphereSpecular);
+    scene.addSphere(Vector3d(450, 410, -150), 90, sphereDiffuse);
 
     //Lucy
     scene.addMesh(Mesh::fromObj("/home/nicolas/CLionProjects/Raytracer_Qt/objs/lucy.obj", 0.3, true, lucy, Vector3d(-220, 120, -20)));

@@ -18,14 +18,14 @@
 #include "util/Scene.h"
 #include "util/Vector3d.h"
 
-//Image properties
+//Bildeigenschaften
 constexpr int width = 1920;
 constexpr int height = 1080;
 QColor BACKGROUND_COLOR = Qt::black;
 Color AMBIENT_COLOR = Color(0.1, 0.1, 0.1);
-constexpr int MAX_DEPTH = 10;
+constexpr int MAX_DEPTH = 5;
 constexpr int RANDOM_ITERATIONS_METAL = 64;
-constexpr int RANDOM_ITERATIONS_GLASS = 16;
+constexpr int RANDOM_ITERATIONS_GLASS = 64;
 constexpr double EPSILON = 1e-6;
 
 Vector3d reflect(const Vector3d &rayDirection, const Vector3d &normal) {
@@ -87,6 +87,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
         if (s*hit.getNormal() >= 0) {
             bool blocked = false;
             const auto ray = Ray(hit.getPosition() + s * EPSILON, s);
+            // Check ob Objekt blockiert ist
             for (auto &object: scene.getObjects()) {
                 if (object->getMaterial().getType() == DIELECTRIC) continue;
                 if (Hit hit2 = object->intersect(ray); hit2.getLambda() >= 0 && (lightSource.getPosition() - hit.getPosition()).getLength() > (hit2.getPosition() - hit.getPosition()).getLength()) {
@@ -96,6 +97,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             }
             if (!blocked) {
                 Color albedo = hit.getColor();
+                //Schachbrettmuster
                 if (hit.getMaterial().isCheckerboard()) {
                     int ix = (int)std::floor(hit.getPosition().getX() / 100.0);
                     int iz = (int)std::floor(hit.getPosition().getZ() / 100.0);
@@ -103,6 +105,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                 }
                 diffuse = diffuse + lightSource.getColor() * albedo * hit.getMaterial().getDiffuseFact() * std::max(0.0, n * l);
 
+                //Spekulare Lichtkomponente
                 if (hit.getMaterial().getType() == SPECULAR) {
                     const Vector3d h = (l + v).normalize();
                     specular = specular + lightSource.getColor() * hit.getMaterial().getSpecularFact() * pow(std::max(0.0, n * h), hit.getMaterial().getShininess());
@@ -110,6 +113,8 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             }
         }
     }
+
+    //Berechnungen für Metall/Reflektierende Objekte
     if (hit.getMaterial().getType() == METAL) {
         if (hit.getMaterial().getGlossiness() == 0) {
             Ray nextRay = Ray(hit.getPosition() + hit.getNormal().normalize() * EPSILON, reflect(initialRay.getDirection(), hit.getNormal().normalize()));
@@ -125,6 +130,8 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
                 if (scene.castRay(nextRay).getLambda() >= 0)
                     reflective = traceRay(nextRay, scene, 0, 1) * hit.getMaterial().getSpecular();
             } else {
+
+                //Berechnungen für matte Oberflächen
                 double glossyR = 0, glossyG = 0, glossyB = 0;
                 for (int i = 0; i < RANDOM_ITERATIONS_METAL; i++) {
                     Vector3d spreadDir = (reflectiveDir + randomVect() * hit.getMaterial().getGlossiness()).normalize();
@@ -141,6 +148,8 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             }
         }
     }
+
+    //Berechnungen für Glas/Refraktion
     if (hit.getMaterial().getType() == DIELECTRIC) {
         Vector3d n = hit.getNormal().normalize();
         Vector3d i = initialRay.getDirection().normalize();
@@ -159,7 +168,7 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
         double f = fresnel(cosA, eta1, eta2);
 
         if (hit.getMaterial().getGlossiness() == 0) {
-            // Perfect glass: deterministic reflect + refract blend (no branching)
+            //Berechnungen für perfektes Glas
             Ray reflectedRay = Ray(hit.getPosition() + n * EPSILON, reflectedDir);
             Color reflectedColor = traceRay(reflectedRay, scene, depth - 1, hit.getMaterial().getRefractiveIndex());
             if (!refractedDir) return reflectedColor;
@@ -173,9 +182,8 @@ Color traceRay(Ray initialRay, const Scene &scene, int depth, double eta) {
             }
             return reflectedColor * f + refractedColor * (1 - f);
         }
-        // Frosted glass: stochastic sampling — each iteration picks reflect OR refract,
-        // never both. Branching factor stays at RANDOM_ITERATIONS (not 1+RANDOM_ITERATIONS).
-        // At depth 1 we can't afford the loop — fall back to a single unspread ray.
+
+        //Berechnungen für frosted Glas
         if (depth == 1) {
             Ray reflectedRay = Ray(hit.getPosition() + n * EPSILON, reflectedDir);
             if (!refractedDir) return traceRay(reflectedRay, scene, 0, hit.getMaterial().getRefractiveIndex());
@@ -217,7 +225,7 @@ int main(int argc, char *argv[]) {
     const auto camera = Camera(Vector3d(-100, 180, -469), Vector3d(0, 200, 0), 1.65, width, height);
     auto scene = Scene(width, height, camera, BACKGROUND_COLOR);
 
-    // Materials
+    // Materialien
     Material wallBlue  = Material(Color(0.1, 0.1, 0.8), 0, 0, 0.2, 1.0);
     Material wallRed   = Material(Color(0.8, 0.1, 0.1), 0, 0.0, 0.2, 1.0);
     Material wallWhite = Material(Color(0.9, 0.9, 0.9), 0, 0.0, 0.2, 1.0);
@@ -226,37 +234,38 @@ int main(int argc, char *argv[]) {
     Material wallMirror = Material(Color(0.4, 0.4, 0.5), 0);
     Material cube = Material(1.2, 0, Color(0.001, 0.01, 0.01));
     Material lucy = Material(Color(0.8, 0.2, 0.3), 100, 0.9, 0.2, 0.9);
-    Material sphereFrosted = Material(1.1, 0.0, Color(0.006, 0.002, 0.001));
+    Material sphereFrosted = Material(1.1, 0.2, Color(0.006, 0.002, 0.001));
     Material sphereMetal = Material(Color(0, 0.8, 0.2), 0.1);
-    Material sphereSpecular = Material(Color(0.8, 0.8, 0), 100, 1, 0.2, 0.9);
+    Material sphereSpecular1 = Material(Color(0.8, 0.8, 0), 100, 1, 0.2, 0.9);
+    Material sphereSpecular2 = Material(Color(0, 0.5, 0.9), 50, 1, 0.2, 0.9);
     Material sphereDiffuse = Material(Color(0.6, 0, 0.9), 0.2, 1);
 
-    // Left wall (blue, X=-800, normal +X)
+    //Linke Wand (blau)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800, 500,-500), Vector3d(-800,-500, 500), wallBlue);
     scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800, 500, 500), Vector3d(-800,-500, 500), wallBlue);
-    // Right wall (red, X=800, normal -X)
+    //Rechte Wand (rot)
     scene.addTriangle(Vector3d( 800,-500,-500), Vector3d( 800,-500, 500), Vector3d( 800, 500,-500), wallRed);
     scene.addTriangle(Vector3d( 800,-500, 500), Vector3d( 800, 500, 500), Vector3d( 800, 500,-500), wallRed);
-    // Back wall (white, Z=500, normal -Z)
+    //Rückwand (Spiegel)
     scene.addTriangle(Vector3d(-800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800,-500, 500), wallMirror);
     scene.addTriangle(Vector3d( 800,-500, 500), Vector3d(-800, 500, 500), Vector3d( 800, 500, 500), wallMirror);
-    // Front wall (white, Z=-500, normal +Z)
+    //Vorderwand (Spiegel)
     scene.addTriangle(Vector3d(-800, 500,-500), Vector3d(-800,-500,-500), Vector3d( 800,-500,-500), wallMirror);
     scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800,-500,-500), Vector3d( 800, 500,-500), wallMirror);
-    // Ceiling (white, Y=-500, normal +Y)
+    //Decke (weiss)
     scene.addTriangle(Vector3d(-800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500,-500), wallWhite);
     scene.addTriangle(Vector3d( 800,-500,-500), Vector3d(-800,-500, 500), Vector3d( 800,-500, 500), wallWhite);
-    // Floor (checkerboard, Y=500, normal -Y)
+    //Boden (Schachbrett)
     scene.addTriangle(Vector3d(-800, 500,-500), Vector3d( 800, 500,-500), Vector3d(-800, 500, 500), floorCheckerboard);
     scene.addTriangle(Vector3d( 800, 500,-500), Vector3d( 800, 500, 500), Vector3d(-800, 500, 500), floorCheckerboard);
 
-    //Lights
+    //Lichtquellen
     scene.addLightSource(LightSource(Vector3d(   -420,  -400, 0), Color(0.4, 0.4, 0.4)));
     scene.addLightSource(LightSource(Vector3d(   410,  -400, 0), Color(0.7, 0.4, 0.4)));
     scene.addLightSource(LightSource(Vector3d(   0,  -400, -403), Color(0.4, 0.7, 0.4)));
     scene.addLightSource(LightSource(Vector3d(   0,  -400, 382), Color(0.4, 0.4, 0.7)));
 
-    //Cube pedestal
+    //Würfelpodest (rot - transparent)
     scene.addTriangle(Vector3d( -37, 298, -137), Vector3d( -37, 498, -137), Vector3d( 137, 298, -37), cube);
     scene.addTriangle(Vector3d( 137, 298,  -37), Vector3d( -37, 498, -137), Vector3d( 137, 498, -37), cube);
 
@@ -275,18 +284,19 @@ int main(int argc, char *argv[]) {
     scene.addTriangle(Vector3d( -37, 498, -137), Vector3d(-137, 498,   37), Vector3d( 137, 498, -37), cube);
     scene.addTriangle(Vector3d(-137, 498,   37), Vector3d(  37, 498,  137), Vector3d( 137, 498, -37), cube);
 
-    //Spheres
+    //Kugeln
     scene.addSphere(Vector3d(  -360,  415,  -90), 80, sphereFrosted);
     scene.addSphere(Vector3d(310, 400, 100), 100, sphereMetal);
-    scene.addSphere(Vector3d(-300, 350, 300), 150, sphereSpecular);
+    scene.addSphere(Vector3d(-300, 350, 300), 150, sphereSpecular1);
     scene.addSphere(Vector3d(450, 410, -150), 90, sphereDiffuse);
+    scene.addSphere(Vector3d(300, 450, -200), 50, sphereSpecular2);
 
     //Lucy
     scene.addMesh(Mesh::fromObj("/home/nicolas/CLionProjects/Raytracer_Qt/objs/lucy.obj", 0.3, true, lucy, Vector3d(-220, 120, -20)));
 
     scene.build();
 
-    //Window Management
+    //Fenstermanagement
     QApplication a(argc, argv);
 
     //Pixel Buffer
@@ -296,7 +306,7 @@ int main(int argc, char *argv[]) {
     label.setPixmap(QPixmap(width, height));
     label.show();
 
-    //Actual Raytracing stuff
+    //Raytracing-Loop mit Multithreading
     std::atomic<bool> done{false};
     std::thread renderThread([&]() {
         std::vector<int> xs(width);
